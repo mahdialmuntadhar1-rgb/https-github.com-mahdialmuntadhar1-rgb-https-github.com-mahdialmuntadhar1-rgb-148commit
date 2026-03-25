@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "iraq-compass-dev",
+    "dev": "iraq-compass-dev",
+    "prod": "iraq-compass-prod"
+  }
+}

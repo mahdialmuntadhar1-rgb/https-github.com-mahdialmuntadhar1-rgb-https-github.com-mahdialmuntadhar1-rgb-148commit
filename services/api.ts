@@ -51,7 +51,51 @@ interface FirestoreErrorInfo {
   code?: string;
 }
 
-function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+async function reportClientError(
+  error: unknown,
+  operationType: OperationType,
+  path: string | null,
+  source: 'firestore' | 'cloud-function'
+) {
+  if (!auth.currentUser) {
+    return;
+  }
+
+  const message = error instanceof Error ? error.message : String(error);
+  const stack = error instanceof Error ? error.stack : undefined;
+  const code = typeof error === 'object' && error !== null && 'code' in error
+    ? String((error as { code?: string }).code)
+    : undefined;
+
+  try {
+    const call = httpsCallable<
+      {
+        operation: OperationType;
+        path: string | null;
+        code?: string;
+        message: string;
+        stack?: string;
+        source: string;
+        severity: 'ERROR';
+      },
+      { logged: boolean }
+    >(functions, 'reportClientError');
+
+    await call({
+      operation: operationType,
+      path,
+      code,
+      message,
+      stack,
+      source,
+      severity: 'ERROR'
+    });
+  } catch (loggingError) {
+    console.error('Failed to report client error:', loggingError);
+  }
+}
+
+async function handleApiError(error: unknown, operationType: OperationType, path: string | null, source: 'firestore' | 'cloud-function') {
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     code: typeof error === 'object' && error !== null && 'code' in error ? String((error as { code?: string }).code) : undefined,
@@ -59,8 +103,8 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     path
   };
 
-  console.error('Firestore Error:', errInfo);
-  throw new Error(errInfo.error);
+  console.error('API Error:', errInfo);
+  await reportClientError(error, operationType, path, source);
 }
 
 async function testConnection() {
@@ -77,15 +121,25 @@ testConnection();
 export const api = {
 
     async generateJourney(queryText: string): Promise<JourneyResponse> {
+      try {
         const call = httpsCallable<{ query: string }, JourneyResponse>(functions, 'generateJourney');
         const result = await call({ query: queryText });
         return result.data;
+      } catch (error) {
+        await handleApiError(error, OperationType.WRITE, 'generateJourney', 'cloud-function');
+        throw error;
+      }
     },
 
     async generateBusinessTagline(input: { businessName: string; city: string; reviews: string }): Promise<TaglineResponse> {
+      try {
         const call = httpsCallable<typeof input, TaglineResponse>(functions, 'generateBusinessTagline');
         const result = await call(input);
         return result.data;
+      } catch (error) {
+        await handleApiError(error, OperationType.WRITE, 'generateBusinessTagline', 'cloud-function');
+        throw error;
+      }
     },
 
     async getBusinesses(params: { category?: string; city?: string; limit?: number; page?: number } = {}) {
@@ -120,7 +174,7 @@ export const api = {
                 total: data.length
             };
         } catch (error) {
-            handleFirestoreError(error, OperationType.GET, path);
+            await handleApiError(error, OperationType.GET, path, 'firestore');
             return { data: [], total: 0 };
         }
     },
@@ -139,7 +193,7 @@ export const api = {
                 } as Post;
             });
         } catch (error) {
-            handleFirestoreError(error, OperationType.GET, path);
+            await handleApiError(error, OperationType.GET, path, 'firestore');
             return [];
         }
     },
@@ -157,7 +211,7 @@ export const api = {
 
             return { success: true, id: postRef.id };
         } catch (error) {
-            handleFirestoreError(error, OperationType.WRITE, path);
+            await handleApiError(error, OperationType.WRITE, path, 'firestore');
             return { success: false };
         }
     },
@@ -175,7 +229,7 @@ export const api = {
             });
             return result.data;
         } catch (error) {
-            handleFirestoreError(error, OperationType.WRITE, path);
+            await handleApiError(error, OperationType.WRITE, path, 'cloud-function');
             return null;
         }
     },
@@ -193,7 +247,7 @@ export const api = {
 
             return { success: true, id: docId };
         } catch (error) {
-            handleFirestoreError(error, OperationType.WRITE, path);
+            await handleApiError(error, OperationType.WRITE, path, 'firestore');
             return { success: false };
         }
     },
@@ -215,7 +269,7 @@ export const api = {
                 } as BusinessPostcard;
             });
         } catch (error) {
-            handleFirestoreError(error, OperationType.GET, path);
+            await handleApiError(error, OperationType.GET, path, 'firestore');
             return [];
         }
     }
