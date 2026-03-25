@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { categories } from '../constants';
 import { api } from '../services/api';
 import type { Business } from '../types';
@@ -86,27 +86,45 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
   }, [initialFilter]);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [filters.category, filters.city, filters.rating]);
+
+  useEffect(() => {
+    let isMounted = true;
     const fetchBusinesses = async () => {
         setIsLoading(true);
         try {
             const result = await api.getBusinesses({
                 category: filters.category,
                 city: filters.city,
+                rating: filters.rating,
                 page: currentPage,
                 limit: pageSize
             });
+            if (!isMounted) {
+              return;
+            }
             setBusinessesData(result.data);
             setTotalCount(result.total);
         } catch (error) {
             console.error('Error fetching businesses:', error);
+            if (isMounted) {
+              setBusinessesData([]);
+              setTotalCount(0);
+            }
         } finally {
-            setIsLoading(false);
+            if (isMounted) {
+              setIsLoading(false);
+            }
         }
     };
     fetchBusinesses();
+    return () => {
+      isMounted = false;
+    };
   }, [filters, currentPage, pageSize]);
 
-  const totalPages = Math.ceil(totalCount / pageSize);
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return (
     <section className="py-16">
@@ -161,7 +179,7 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
                 <label className="text-white/80 text-sm mb-2 block">{t('directory.minimumRating')}</label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((rating) => (
-                    <button key={rating} onClick={() => setFilters({ ...filters, rating })} className={`flex-1 aspect-square rounded-xl flex items-center justify-center transition-all duration-200 ${filters.rating >= rating ? 'bg-gradient-to-br from-accent to-primary' : 'backdrop-blur-xl bg-white/10 hover:bg-white/20'}`}>
+                    <button type="button" key={rating} onClick={() => setFilters({ ...filters, rating })} className={`flex-1 aspect-square rounded-xl flex items-center justify-center transition-all duration-200 ${filters.rating >= rating ? 'bg-gradient-to-br from-accent to-primary' : 'backdrop-blur-xl bg-white/10 hover:bg-white/20'}`}>
                       <Star className={`w-5 h-5 ${filters.rating >= rating ? 'text-white fill-white' : 'text-white/50'}`} />
                     </button>
                   ))}
@@ -183,12 +201,19 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
                     <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
                 </div>
             ) : (
-                <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 gap-6' : 'space-y-4'}>
+                businessesData.length === 0 ? (
+                  <GlassCard className="p-10 text-center">
+                    <h3 className="text-xl font-semibold text-white mb-2">{t('directory.noResults') || 'No businesses found'}</h3>
+                    <p className="text-white/60">{t('directory.tryDifferentFilters') || 'Try adjusting category, city, or minimum rating.'}</p>
+                  </GlassCard>
+                ) : (
+                  <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 gap-6' : 'space-y-4'}>
                     {businessesData.map((business) => (<BusinessCard key={business.id} business={business} viewMode={viewMode} />))}
-                </div>
+                  </div>
+                )
             )}
 
-            {totalPages > 1 && (
+            {totalPages > 1 && businessesData.length > 0 && (
                 <div className="mt-12 flex items-center justify-center gap-4">
                     <button 
                         disabled={currentPage === 1 || isLoading}

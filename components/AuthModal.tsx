@@ -22,9 +22,36 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [authError, setAuthError] = useState<string | null>(null);
     const { t } = useTranslations();
 
+    const clearAuthError = () => setAuthError(null);
+
+    const getFriendlyAuthError = (error: unknown, mode: 'signin' | 'signup') => {
+        const code = typeof error === 'object' && error !== null && 'code' in error
+            ? String((error as { code?: string }).code)
+            : '';
+
+        if (code.includes('auth/invalid-credential') || code.includes('auth/wrong-password') || code.includes('auth/user-not-found')) {
+            return 'Invalid email or password.';
+        }
+        if (code.includes('auth/email-already-in-use')) {
+            return 'This email is already registered.';
+        }
+        if (code.includes('auth/invalid-email')) {
+            return 'Please enter a valid email address.';
+        }
+        if (code.includes('auth/weak-password')) {
+            return 'Password is too weak. Please choose a stronger password.';
+        }
+
+        return mode === 'signup'
+            ? 'Failed to create account. Please try again.'
+            : 'Failed to sign in. Check your credentials and try again.';
+    };
+
     const handleGoogleSignIn = async () => {
+        clearAuthError();
         setIsLoading(true);
         try {
             const provider = new GoogleAuthProvider();
@@ -34,7 +61,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
             }
         } catch (error) {
             console.error('Google Sign-In Error:', error);
-            alert('Failed to sign in with Google. Please try again.');
+            setAuthError('Failed to sign in with Google. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -42,22 +69,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
 
     const handleEmailAuth = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        clearAuthError();
         setIsLoading(true);
 
         try {
+            const normalizedEmail = email.trim().toLowerCase();
+            const normalizedPassword = password.trim();
+
             if (activeTab === 'signup') {
-                const credentials = await createUserWithEmailAndPassword(auth, email.trim(), password);
+                if (normalizedPassword.length < 8) {
+                    throw new Error('Password must be at least 8 characters long.');
+                }
+
+                const credentials = await createUserWithEmailAndPassword(auth, normalizedEmail, normalizedPassword);
                 if (fullName.trim()) {
                     await updateProfile(credentials.user, { displayName: fullName.trim() });
                 }
-                onLogin(credentials.user.email || email, role);
+                onLogin(credentials.user.email || normalizedEmail, role);
             } else {
-                const credentials = await signInWithEmailAndPassword(auth, email.trim(), password);
-                onLogin(credentials.user.email || email, role);
+                const credentials = await signInWithEmailAndPassword(auth, normalizedEmail, normalizedPassword);
+                onLogin(credentials.user.email || normalizedEmail, role);
             }
         } catch (error) {
             console.error('Email auth error:', error);
-            alert(activeTab === 'signup' ? 'Failed to create account. Please try again.' : 'Failed to sign in. Check your credentials and try again.');
+            if (error instanceof Error && error.message === 'Password must be at least 8 characters long.') {
+                setAuthError(error.message);
+            } else {
+                setAuthError(getFriendlyAuthError(error, activeTab));
+            }
         } finally {
             setIsLoading(false);
         }
@@ -137,7 +176,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
                         <input
                             type="email"
                             value={email}
-                            onChange={(event) => setEmail(event.target.value)}
+                            onChange={(event) => {
+                                setEmail(event.target.value);
+                                clearAuthError();
+                            }}
                             placeholder={t('auth.email')}
                             className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none"
                             required
@@ -145,12 +187,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
                         <input
                             type="password"
                             value={password}
-                            onChange={(event) => setPassword(event.target.value)}
+                            onChange={(event) => {
+                                setPassword(event.target.value);
+                                clearAuthError();
+                            }}
                             placeholder={t('auth.password')}
                             className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none"
-                            minLength={6}
+                            minLength={activeTab === 'signup' ? 8 : 1}
                             required
                         />
+                        {authError && (
+                            <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                                {authError}
+                            </div>
+                        )}
                         <button
                             type="submit"
                             disabled={isLoading}
@@ -162,7 +212,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
 
                     <div className="text-center">
                         <button
-                            onClick={() => setActiveTab(activeTab === 'signin' ? 'signup' : 'signin')}
+                            onClick={() => {
+                                clearAuthError();
+                                setActiveTab(activeTab === 'signin' ? 'signup' : 'signin');
+                            }}
                             className="text-primary text-sm font-medium hover:underline"
                         >
                             {activeTab === 'signin' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}

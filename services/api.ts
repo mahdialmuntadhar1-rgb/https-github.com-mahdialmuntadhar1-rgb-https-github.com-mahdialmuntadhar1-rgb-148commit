@@ -13,7 +13,6 @@ import {
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, auth, functions } from '../firebase';
-import { businesses as mockBusinesses } from '../constants';
 import type { Business, Post, User, BusinessPostcard } from '../types';
 
 export enum OperationType {
@@ -118,6 +117,23 @@ async function testConnection() {
 }
 testConnection();
 
+const DEFAULT_PAGE_SIZE = 50;
+
+const sanitizeCaption = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+
+const isSafeHttpUrl = (value: unknown) => {
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(value.trim());
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
 export const api = {
 
     async generateJourney(queryText: string): Promise<JourneyResponse> {
@@ -142,36 +158,42 @@ export const api = {
       }
     },
 
-    async getBusinesses(params: { category?: string; city?: string; limit?: number; page?: number } = {}) {
+    async getBusinesses(params: { category?: string; city?: string; rating?: number; limit?: number; page?: number } = {}) {
         const path = 'businesses';
         try {
-            let q = query(collection(db, path), orderBy('name'));
+            const pageSize = Math.max(1, params.limit || DEFAULT_PAGE_SIZE);
+            const page = Math.max(1, params.page || 1);
+            const minRating = params.rating && params.rating > 0 ? params.rating : undefined;
+            const normalizedCity = params.city?.trim().toLowerCase() || '';
+
+            let q = query(collection(db, path));
 
             if (params.category && params.category !== 'all') {
                 q = query(q, where('category', '==', params.category));
             }
 
-            const pageSize = params.limit || 50;
-            q = query(q, limit(pageSize));
+            if (minRating !== undefined) {
+                q = query(q, where('rating', '>=', minRating), orderBy('rating', 'desc'), orderBy('name'));
+            } else {
+                q = query(q, orderBy('name'));
+            }
 
+            // NOTE: city filtering remains client-side because Firestore cannot do case-insensitive contains
+            // without a dedicated normalized/searchable field and additional indexes.
+            // We fetch matching documents first, then paginate after city filtering to keep `total` accurate.
             const snapshot = await getDocs(q);
             let data = snapshot.docs.map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() } as Business));
-
-            if (params.city) {
-                const cityQuery = params.city.trim().toLowerCase();
-                data = data.filter((business) => (business.city || '').toLowerCase().includes(cityQuery));
+            if (normalizedCity) {
+                data = data.filter((business) => (business.city || '').toLowerCase().includes(normalizedCity));
             }
 
-            if (data.length === 0) {
-                return {
-                    data: mockBusinesses.slice(0, pageSize),
-                    total: mockBusinesses.length
-                };
-            }
+            const total = data.length;
+            const startIndex = (page - 1) * pageSize;
+            const paginatedData = data.slice(startIndex, startIndex + pageSize);
 
             return {
-                data,
-                total: data.length
+                data: paginatedData,
+                total
             };
         } catch (error) {
             await handleApiError(error, OperationType.GET, path, 'firestore');
@@ -200,10 +222,25 @@ export const api = {
 
     async createPost(postData: Partial<Post>) {
         const path = 'posts';
+        if (!auth.currentUser) {
+            return { success: false, error: 'You must be signed in to create a post.' };
+        }
+
+        const sanitizedCaption = sanitizeCaption(postData.caption);
+        if (!sanitizedCaption) {
+            return { success: false, error: 'Caption is required.' };
+        }
+
+        if (!isSafeHttpUrl(postData.imageUrl)) {
+            return { success: false, error: 'Image URL must be a valid http/https URL.' };
+        }
+
         try {
             const postRef = doc(collection(db, path));
             await setDoc(postRef, {
                 ...postData,
+                caption: sanitizedCaption,
+                imageUrl: (postData.imageUrl || '').trim(),
                 id: postRef.id,
                 createdAt: serverTimestamp(),
                 likes: 0
@@ -212,7 +249,7 @@ export const api = {
             return { success: true, id: postRef.id };
         } catch (error) {
             await handleApiError(error, OperationType.WRITE, path, 'firestore');
-            return { success: false };
+            return { success: false, error: 'Failed to create post. Please try again.' };
         }
     },
 

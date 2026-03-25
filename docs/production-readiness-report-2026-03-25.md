@@ -1,73 +1,69 @@
-# Iraq Compass — Production Readiness Deep Report
+# Iraq Compass — Production Readiness Report (Corrected)
 
 Date: 2026-03-25 (UTC)
 
-## Executive assessment
+## Scope of this correction pass
 
-- **Estimated production launch readiness: 68%**
-- **Estimated probability of a smooth initial launch (without major incident): 64%**
+This report reflects the **actual code state** after fixing the broken PR implementation in:
 
-This estimate is based on repository-only evidence across security, backend integrity, infrastructure, testing, and operational readiness.
+- `components/AuthModal.tsx`
+- `components/Dashboard.tsx`
+- `components/BusinessDirectory.tsx`
+- `services/api.ts`
 
-## What is now improved in this pass
+## Verified improvements in code
 
-1. **User provisioning moved to trusted backend path**
-   - Added callable Cloud Function `ensureUserProfile` that provisions user documents from authenticated context.
-   - Frontend `api.login` now calls the backend function instead of creating user docs directly in the client.
+### 1) Authentication UX and input safety
 
-2. **Firestore user-write hardening**
-   - User document **client-side create is disabled**.
-   - User updates by owner now enforce immutable `role` and `businessId` fields.
+- Email auth now uses normalized email values (`trim().toLowerCase()`).
+- Password handling is normalized with trimming for sign-in/sign-up submission.
+- Sign-up enforces minimum password length of 8 characters.
+- Email and Google auth errors are shown inline in the modal (state-driven UI), replacing browser alerts for auth flows.
+- Sign-in/sign-up paths each perform exactly one auth call, with no duplicate declarations/calls.
 
-3. **Deploy topology codified**
-   - Added `firebase.json` to define hosting, functions source, and Firestore rules/index deployment.
+### 2) Dashboard profile editing stability
 
-4. **Composite index definitions codified**
-   - Added `firestore.indexes.json` for known query patterns:
-     - `businesses`: `category + name`
-     - `business_postcards`: `governorate + updatedAt(desc)`
+- Profile settings uses a single form and `onSubmit={handleProfileSave}`.
+- Firebase Auth `updateProfile` is used for display-name updates.
+- Email remains read-only in this screen (no partial password/email-change implementation).
+- Save button loading/disabled states and inline success/error feedback are implemented.
+- Displayed profile name in the dashboard reflects edited state immediately after a successful save.
 
-## Scorecard by domain
+### 3) Business directory pagination + filtering behavior
 
-| Domain | Weight | Status | Score | Notes |
-|---|---:|---:|---:|---|
-| Security & authz | 25% | Improving | 70 | Admin claims model exists, but claims lifecycle automation still missing. |
-| Backend reliability | 20% | Partial | 65 | Callable endpoints exist with auth + rate limit, but no durable/global rate limiting. |
-| Data model & DB | 15% | Partial | 70 | Rules and indexes now versioned, but no migration/backfill controls. |
-| Frontend quality | 10% | Partial | 60 | Good UX baseline; still includes fallback mock data and limited production error UX. |
-| Testing & QA | 15% | Weak | 45 | Minimal automated tests, mostly rate-limit unit coverage in functions only. |
-| DevOps/Release ops | 15% | Weak/Partial | 55 | Deploy config now present; CI/CD, env separation, and rollback/monitoring are still missing. |
+- Filter changes (category/city/rating) reset to page 1.
+- API requests include `page`, `limit`, and `rating`.
+- Empty-state UI is shown when no results are returned.
+- Pagination controls correctly disable at boundaries and avoid off-by-one behavior.
+- Fetch cleanup guard prevents stale async state updates during rapid filter changes.
 
-## Critical gaps still blocking true production readiness
+### 4) Backend query and posting safety
 
-1. **No environment separation strategy in repo**
-   - Missing explicit dev/staging/prod project alias strategy (e.g., `.firebaserc` aliases).
+- `getBusinesses(...)` supports:
+  - category filter,
+  - rating minimum filter,
+  - page/limit pagination,
+  - accurate `total` count based on filtered dataset.
+- Firestore rating inequality query uses compatible ordering (`orderBy('rating', 'desc')` and then `orderBy('name')`).
+- City filtering is explicitly documented as a client-side limitation (case-insensitive contains) and applied before paging so totals are not misleading.
+- `createPost(...)` now validates:
+  - authenticated user required,
+  - non-empty sanitized caption required,
+  - image URL must be valid `http/https`.
+- `createPost(...)` returns useful error messages for validation and write failures.
 
-2. **No admin-claims assignment workflow**
-   - Rules check `request.auth.token.admin`, but no in-repo claim issuance/revocation automation.
+## Known limitations
 
-3. **Insufficient test depth**
-   - No Firestore rules emulator test suite for auth matrix.
-   - No end-to-end smoke suite for auth, posting, and AI flows.
+1. **City search is still client-side contains-filtering.**  
+   This is accurate but may be expensive at scale because all category/rating-matching records are loaded before city filtering + pagination.
 
-4. **Operational readiness gap**
-   - No deployment pipeline, preflight checks, release gates, or rollback runbook captured.
+2. **Dashboard display-name update currently updates Firebase Auth profile only.**  
+   If other persisted profile stores exist, synchronization should be explicitly implemented.
 
-5. **Observability gap**
-   - No structured app telemetry, alerting thresholds, SLO tracking, or incident dashboarding.
+3. **Post-validation UX depends on caller handling returned `error` strings.**  
+   Current API behavior is safe, but all UI callers should display these errors consistently.
 
-## Recommended launch gates (minimum)
+## Current readiness view (for this scope only)
 
-Before launch, complete these minimum gates:
-
-1. Add Firebase multi-environment aliasing and deployment guardrails.
-2. Implement admin claim management endpoint/runbook.
-3. Add emulator-backed security rules tests for users/posts/postcards.
-4. Add one CI pipeline for lint + build + tests + deploy approval.
-5. Instrument error/availability monitoring and alerting.
-
-## Confidence and interpretation
-
-- **68% readiness** means the product can likely be demoed and soft-launched to a controlled audience.
-- It is **not yet high-confidence production grade** for broad public traffic without elevated operational risk.
-
+- The corrected changes are now build-safe and aligned with the intended goals for security, pagination, auth UX, profile editing, and frontend/backend coupling.
+- This pass does **not** claim full production readiness across CI/CD, observability, environment separation, or complete automated test coverage.

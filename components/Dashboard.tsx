@@ -6,6 +6,8 @@ import { GlassCard } from './GlassCard';
 import { SocialPostBox } from './SocialPostBox';
 import { DataArchitect } from './DataArchitect';
 import { api } from '../services/api';
+import { auth } from '../firebase';
+import { updateProfile } from 'firebase/auth';
 
 interface DashboardProps {
     user: User;
@@ -15,13 +17,21 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     const { t } = useTranslations();
     const [activeTab, setActiveTab] = React.useState<'profile' | 'architect'>('profile');
+    const [displayName, setDisplayName] = React.useState(user.name);
+    const [isSavingProfile, setIsSavingProfile] = React.useState(false);
+    const [profileStatus, setProfileStatus] = React.useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+    React.useEffect(() => {
+        setDisplayName(user.name);
+    }, [user.name]);
+    const effectiveDisplayName = displayName.trim() || user.name;
     
     const handleCreatePost = async (postData: Partial<Post>) => {
         try {
             const result = await api.createPost({
                 ...postData,
                 businessId: user.businessId,
-                businessName: user.name,
+                businessName: effectiveDisplayName,
                 businessAvatar: user.avatar
             });
             if (result.success) {
@@ -38,13 +48,41 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
         { type: 'search', item: 'Hotels in Erbil', icon: <Users className="w-4 h-4 text-primary" />, time: '3 days ago' },
     ];
 
+    const handleProfileSave = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setProfileStatus(null);
+
+        const trimmedName = displayName.trim();
+        if (!trimmedName) {
+            setProfileStatus({ type: 'error', message: 'Display name cannot be empty.' });
+            return;
+        }
+
+        if (!auth.currentUser) {
+            setProfileStatus({ type: 'error', message: 'You need to be signed in to update your profile.' });
+            return;
+        }
+
+        setIsSavingProfile(true);
+        try {
+            await updateProfile(auth.currentUser, { displayName: trimmedName });
+            setDisplayName(auth.currentUser.displayName || trimmedName);
+            setProfileStatus({ type: 'success', message: 'Profile updated successfully.' });
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            setProfileStatus({ type: 'error', message: 'Failed to update profile. Please try again.' });
+        } finally {
+            setIsSavingProfile(false);
+        }
+    };
+
     return (
         <div className="container mx-auto px-4 py-12">
             <div className="flex flex-col md:flex-row items-center justify-between mb-12 text-center md:text-start rtl:md:text-right">
                 <div className="flex flex-col md:flex-row items-center gap-6 mb-6 md:mb-0">
-                    <img src={user.avatar} alt={user.name} className="w-24 h-24 rounded-full border-4 border-primary" />
+                    <img src={user.avatar} alt={effectiveDisplayName} className="w-24 h-24 rounded-full border-4 border-primary" />
                     <div>
-                        <h1 className="text-3xl font-bold text-white">{t('dashboard.welcome')}, {user.name}!</h1>
+                        <h1 className="text-3xl font-bold text-white">{t('dashboard.welcome')}, {effectiveDisplayName}!</h1>
                         <p className="text-white/70">{user.email}</p>
                         <div className="flex flex-wrap gap-2 mt-2 justify-center md:justify-start">
                             {user.role === 'owner' && (
@@ -94,7 +132,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                             <h2 className="text-2xl font-bold text-white mb-6">{t('dashboard.createPost') || "Create a Post"}</h2>
                             <SocialPostBox 
                                 businessId={user.businessId} 
-                                businessName={user.name} 
+                                businessName={effectiveDisplayName} 
                                 businessAvatar={user.avatar} 
                                 onSubmit={handleCreatePost}
                             />
@@ -105,21 +143,42 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                         {/* Profile Settings */}
                         <GlassCard className="lg:col-span-1 p-6">
                             <h2 className="text-2xl font-bold text-white mb-6">{t('dashboard.profileSettings')}</h2>
-                            <form className="space-y-4">
+                            <form className="space-y-4" onSubmit={handleProfileSave}>
                                 <div>
                                     <label className="block text-white/70 text-sm mb-2">{t('auth.fullName')}</label>
-                                    <input type="text" defaultValue={user.name} className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-primary transition-colors" />
+                                    <input
+                                        type="text"
+                                        value={displayName}
+                                        onChange={(event) => setDisplayName(event.target.value)}
+                                        disabled={isSavingProfile}
+                                        className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-primary transition-colors disabled:opacity-60"
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-white/70 text-sm mb-2">{t('auth.email')}</label>
-                                    <input type="email" defaultValue={user.email} className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-primary transition-colors" />
+                                    <input
+                                        type="email"
+                                        value={user.email}
+                                        readOnly
+                                        aria-readonly="true"
+                                        className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white/70 outline-none cursor-not-allowed"
+                                    />
                                 </div>
-                                <div>
-                                    <label className="block text-white/70 text-sm mb-2">{t('auth.newPassword')}</label>
-                                    <input type="password" placeholder="********" className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-primary transition-colors" />
-                                </div>
-                                <button type="submit" className="w-full !mt-6 py-3 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-semibold hover:shadow-glow-primary transition-all">
-                                    {t('dashboard.saveChanges')}
+                                {profileStatus && (
+                                    <div className={`rounded-xl border px-4 py-3 text-sm ${
+                                        profileStatus.type === 'success'
+                                            ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
+                                            : 'border-red-400/40 bg-red-500/10 text-red-200'
+                                    }`}>
+                                        {profileStatus.message}
+                                    </div>
+                                )}
+                                <button
+                                    type="submit"
+                                    disabled={isSavingProfile}
+                                    className="w-full !mt-6 py-3 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-semibold hover:shadow-glow-primary transition-all disabled:opacity-60"
+                                >
+                                    {isSavingProfile ? 'Saving…' : t('dashboard.saveChanges')}
                                 </button>
                             </form>
                         </GlassCard>
