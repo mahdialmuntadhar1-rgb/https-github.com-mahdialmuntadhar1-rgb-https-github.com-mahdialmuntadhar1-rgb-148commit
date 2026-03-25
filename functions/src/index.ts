@@ -179,3 +179,36 @@ export const ensureUserProfile = onCall(async (request) => {
 
   return newUser;
 });
+
+export const reportClientError = onCall(async (request) => {
+  const uid = ensureAuthenticated(request.auth?.uid);
+
+  if (!consumeRateLimit(`error-log:${uid}`)) {
+    throw new HttpsError('resource-exhausted', 'Rate limit exceeded. Please wait before retrying.');
+  }
+
+  const operation = sanitizeText(String(request.data?.operation ?? 'unknown'), 100);
+  const source = sanitizeText(String(request.data?.source ?? 'web-client'), 120);
+  const path = sanitizeText(String(request.data?.path ?? ''), 200);
+  const code = sanitizeText(String(request.data?.code ?? ''), 100);
+  const message = sanitizeText(String(request.data?.message ?? 'Unknown error'), 1500);
+  const stack = sanitizeText(String(request.data?.stack ?? ''), 4000);
+  const severityRaw = sanitizeText(String(request.data?.severity ?? 'ERROR').toUpperCase(), 20);
+  const severity = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'].includes(severityRaw)
+    ? severityRaw
+    : 'ERROR';
+
+  await adminDb.collection('logs').add({
+    uid,
+    source,
+    operation,
+    path: path || null,
+    code: code || null,
+    message,
+    stack: stack || null,
+    severity,
+    timestamp: Date.now()
+  });
+
+  return { logged: true };
+});
