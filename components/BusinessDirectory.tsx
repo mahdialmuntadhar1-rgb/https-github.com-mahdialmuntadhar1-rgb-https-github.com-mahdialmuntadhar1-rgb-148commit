@@ -16,6 +16,8 @@ interface BusinessCardProps {
 
 const BusinessCard: React.FC<BusinessCardProps> = ({ business, viewMode, onViewDetails }) => {
   const { t, lang } = useTranslations();
+  const categoryKey = categories.find((c) => c.id === business.category)?.nameKey;
+  const categoryLabel = categoryKey ? t(categoryKey) : (business.category || t('common.notAvailable') || 'N/A');
   
   const displayName = lang === 'ar' && business.nameAr ? business.nameAr : 
                       lang === 'ku' && business.nameKu ? business.nameKu : 
@@ -31,7 +33,7 @@ const BusinessCard: React.FC<BusinessCardProps> = ({ business, viewMode, onViewD
         <img src={displayImage} alt={displayName} className="w-24 h-24 rounded-xl object-cover flex-shrink-0" />
         <div className="flex-1">
           <h3 className="text-white font-semibold text-lg mb-1">{displayName}</h3>
-          <p className="text-white/60 text-sm mb-2">{t(categories.find(c => c.id === business.category)?.nameKey || business.category)}</p>
+          <p className="text-white/60 text-sm mb-2">{categoryLabel}</p>
             <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-1"><Star className="w-4 h-4 text-accent fill-accent" /><span className="text-white">{business.rating ?? 0}</span></div>
             <div className="flex items-center gap-1 text-white/60"><MapPin className="w-4 h-4" />{business.distance ? `${business.distance} km` : (t('common.notAvailable') || 'N/A')}</div>
@@ -53,7 +55,7 @@ const BusinessCard: React.FC<BusinessCardProps> = ({ business, viewMode, onViewD
       </div>
       <div className="p-5">
         <h3 className="text-white font-semibold text-lg mb-2">{displayName}</h3>
-        <p className="text-white/60 text-sm mb-3">{t(categories.find(c => c.id === business.category)?.nameKey || business.category)}</p>
+        <p className="text-white/60 text-sm mb-3">{categoryLabel}</p>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1"><Star className="w-4 h-4 text-accent fill-accent" /><span className="text-white font-medium">{business.rating ?? 0}</span><span className="text-white/60 text-sm">({displayReviews})</span></div>
           <div className="flex items-center gap-1 text-white/60 text-sm"><MapPin className="w-4 h-4" />{business.distance ? `${business.distance} km` : (t('common.notAvailable') || 'N/A')}</div>

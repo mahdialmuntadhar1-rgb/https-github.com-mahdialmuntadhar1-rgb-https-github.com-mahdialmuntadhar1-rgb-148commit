@@ -1,22 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
-import { StoriesRing } from './components/StoriesRing';
 import { CategoryGrid } from './components/CategoryGrid';
-import { FeaturedBusinesses } from './components/FeaturedBusinesses';
-import { PersonalizedEvents } from './components/PersonalizedEvents';
-import { DealsMarketplace } from './components/DealsMarketplace';
-import { CommunityStories } from './components/CommunityStories';
 import { BusinessDirectory } from './components/BusinessDirectory';
-import { InclusiveFeatures } from './components/InclusiveFeatures';
-import { SocialFeed } from './components/SocialFeed';
 import { AuthModal } from './components/AuthModal';
 import { SubcategoryModal } from './components/SubcategoryModal';
 import { GovernorateFilter } from './components/GovernorateFilter';
 import { SearchPortal } from './components/SearchPortal';
 import { api } from './services/api';
 import { supabase } from './services/supabase';
-import type { User, Category, Subcategory, Post } from './types';
+import type { User, Category, Subcategory } from './types';
 import { TranslationProvider } from './hooks/useTranslations';
 
 class ErrorBoundary extends (React.Component as any) {
@@ -69,16 +62,7 @@ const MainContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [listingFilter, setListingFilter] = useState<{ categoryId?: string; city?: string; governorate?: string } | null>(null);
   const [selectedGovernorate, setSelectedGovernorate] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isSocialLoading, setIsSocialLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [highContrast, setHighContrast] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('iraq-compass-high-contrast') === 'true';
-    }
-    return false;
-  });
 
   useEffect(() => {
     let isMounted = true;
@@ -129,25 +113,6 @@ const MainContent: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    setIsSocialLoading(true);
-    const unsubscribe = api.subscribeToPosts((newPosts) => {
-      setPosts(newPosts);
-      setIsSocialLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (highContrast) {
-      document.documentElement.setAttribute('data-contrast', 'high');
-      localStorage.setItem('iraq-compass-high-contrast', 'true');
-    } else {
-      document.documentElement.removeAttribute('data-contrast');
-      localStorage.setItem('iraq-compass-high-contrast', 'false');
-    }
-  }, [highContrast]);
-
   const handleAuthStarted = () => {
     setAuthError(null);
     setShowAuthModal(false);
@@ -181,7 +146,6 @@ const MainContent: React.FC = () => {
   };
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
     setListingFilter({ city: query, governorate: selectedGovernorate !== 'all' ? selectedGovernorate : undefined });
     setPage('listing');
   };
@@ -221,32 +185,20 @@ const MainContent: React.FC = () => {
         {page === 'home' && (
           <>
             <HeroSection />
-            <StoriesRing />
             <div className="container mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    <div className="lg:col-span-2">
-                        <h2 className="text-3xl font-bold text-white mb-8">Social Ecosystem</h2>
-                        <SocialFeed posts={posts} isLoading={isSocialLoading} />
-                    </div>
-                    <div className="space-y-12">
-                        <SearchPortal onSearch={handleSearch} />
-                        <GovernorateFilter 
-                          selectedGovernorate={selectedGovernorate}
-                          onGovernorateChange={handleGovernorateChange}
-                        />
-                         <CategoryGrid 
-                          onCategoryClick={handleCategoryClick} 
-                          currentPage={currentPage}
-                          setCurrentPage={setCurrentPage}
-                        />
-                    </div>
+                <div className="space-y-12">
+                    <SearchPortal onSearch={handleSearch} />
+                    <GovernorateFilter 
+                      selectedGovernorate={selectedGovernorate}
+                      onGovernorateChange={handleGovernorateChange}
+                    />
+                      <CategoryGrid 
+                      onCategoryClick={handleCategoryClick} 
+                      currentPage={currentPage}
+                      setCurrentPage={setCurrentPage}
+                    />
                 </div>
             </div>
-            <FeaturedBusinesses />
-            <PersonalizedEvents />
-            <DealsMarketplace />
-            <CommunityStories />
-            <InclusiveFeatures highContrast={highContrast} setHighContrast={setHighContrast} />
           </>
         )}
         {page === 'listing' && listingFilter && (

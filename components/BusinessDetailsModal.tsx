@@ -17,7 +17,7 @@ export const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ busi
   const displayName =
     lang === 'ar' && business.nameAr ? business.nameAr :
     lang === 'ku' && business.nameKu ? business.nameKu :
-    business.name;
+    business.name || t('common.notAvailable') || 'N/A';
 
   const displayDescription =
     lang === 'ar' && business.descriptionAr ? business.descriptionAr :
@@ -25,6 +25,8 @@ export const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ busi
     business.description;
 
   const displayImage = business.coverImage || business.imageUrl || business.image || 'https://picsum.photos/seed/placeholder/800/600';
+  const categoryKey = categories.find((c) => c.id === business.category)?.nameKey;
+  const categoryLabel = categoryKey ? t(categoryKey) : (business.category || t('common.notAvailable') || 'N/A');
   const websiteHref = business.website
     ? business.website.startsWith('http://') || business.website.startsWith('https://')
       ? business.website
@@ -53,7 +55,7 @@ export const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({ busi
             <div>
               <h3 className="text-2xl font-bold text-white">{displayName}</h3>
               <p className="text-white/60">
-                {t(categories.find((c) => c.id === business.category)?.nameKey || business.category)}
+                {categoryLabel}
               </p>
             </div>
             <div className="flex items-center gap-1 text-white">
