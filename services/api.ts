@@ -53,6 +53,7 @@ export const api = {
   async getBusinesses(
     params: {
       category?: string;
+      ratingMin?: number;
       city?: string;
       governorate?: string;
       offset?: number;
@@ -83,6 +84,10 @@ export const api = {
 
     if (params.featuredOnly) {
       filters.push("is_featured=eq.true");
+    }
+
+    if (typeof params.ratingMin === "number" && params.ratingMin > 0) {
+      filters.push(`rating=gte.${params.ratingMin}`);
     }
 
     if (params.city?.trim()) {
