@@ -6,7 +6,7 @@ Scope used for this mapping:
 - `services/api.ts`
 - `firestore.rules`
 - `types.ts`
-- Firebase bootstrap in `firebase.ts`
+- legacy auth bootstrap module (name updated during migration)
 
 If something is not present in those files, it is flagged as uncertain instead of inferred.
 
@@ -279,7 +279,7 @@ create index if not exists idx_postcards_governorate on public.business_postcard
 ## 6) RLS policy draft mirroring Firestore rules
 
 Assumptions for Supabase auth mapping:
-- `auth.uid()` corresponds to Firebase `request.auth.uid` equivalent.
+- `auth.uid()` corresponds to legacy auth `request.auth.uid` equivalent.
 - Admin override is represented by either:
   - `users.role = 'admin'`, and/or
   - auth JWT claim `email = 'safaribosafar@gmail.com'` with verified email status.
@@ -301,7 +301,7 @@ as $$
 $$;
 ```
 
-> Uncertainty: Supabase JWT does not always expose the same `email_verified` semantics as Firebase. Mirror by role is reliable; exact email-verified bootstrap may need auth-hook/workflow confirmation.
+> Uncertainty: Supabase JWT does not always expose the same `email_verified` semantics as legacy auth. Mirror by role is reliable; exact email-verified bootstrap may need auth-hook/workflow confirmation.
 
 ### `users`
 - SELECT: authenticated users can read.
@@ -348,7 +348,7 @@ $$;
 
 ### Direct Firestore/SKD replacement targets
 - `services/api.ts` (all collection/document operations migrate to Supabase client queries + realtime channels).
-- `firebase.ts` (remove Firestore initialization; likely replace auth wiring too if fully leaving Firebase Auth).
+- `legacy-auth.ts` (remove Firestore initialization; likely replace auth wiring too if fully leaving legacy auth Auth).
 
 ### Indirect callers depending on existing `api` behavior
 These components call methods in `services/api.ts` and may need call-shape updates if return types change:
@@ -367,8 +367,8 @@ These components call methods in `services/api.ts` and may need call-shape updat
    - Missing env vars and initialization details (e.g., project URL, anon key, service role usage boundaries).
 
 2. **Auth migration boundary not yet specified**
-   - Current code uses Firebase Auth (`auth.currentUser`, `onAuthStateChanged`, `GoogleAuthProvider`).
-   - If auth remains Firebase while data moves to Supabase, JWT bridging strategy is required but not visible.
+   - Current code uses legacy auth Auth (`authenticated session user`, `auth-state listener`, `Google OAuth provider`).
+   - If auth remains legacy auth while data moves to Supabase, JWT bridging strategy is required but not visible.
 
 3. **`likes` usage not visible in client data layer**
    - Rules define it, but no active API method references it.

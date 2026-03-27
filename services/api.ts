@@ -1,4 +1,4 @@
-import { auth } from '../firebase';
+import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 import type { Business, Post, User, BusinessPostcard } from '../types';
 import { supabase } from './supabase';
 import type { TableInsert, TableUpdate } from './database.types';
@@ -20,34 +20,22 @@ interface DataAccessErrorInfo {
   path: string | null;
   authInfo: {
     userId: string | undefined;
-    email: string | null | undefined;
-    emailVerified: boolean | undefined;
-    isAnonymous: boolean | undefined;
-    tenantId: string | null | undefined;
-    providerInfo: {
-      providerId: string;
-      displayName: string | null;
-      email: string | null;
-      photoUrl: string | null;
-    }[];
+    email: string | undefined;
+    providers: string[];
+    role?: string;
   }
 }
+
+let currentAuthUser: SupabaseAuthUser | null = null;
 
 function handleDataAccessError(error: unknown, operationType: OperationType, path: string | null): never {
   const errInfo: DataAccessErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData.map(provider => ({
-        providerId: provider.providerId,
-        displayName: provider.displayName,
-        email: provider.email,
-        photoUrl: provider.photoURL
-      })) || []
+      userId: currentAuthUser?.id,
+      email: currentAuthUser?.email,
+      providers: currentAuthUser?.app_metadata?.providers || [],
+      role: typeof currentAuthUser?.user_metadata?.role === 'string' ? currentAuthUser.user_metadata.role : undefined
     },
     operationType,
     path
@@ -273,28 +261,32 @@ export const api = {
     }
   },
 
-  async getOrCreateProfile(firebaseUser: any, requestedRole: 'user' | 'owner' = 'user') {
-    if (!firebaseUser) return null;
+  setAuthUser(user: SupabaseAuthUser | null) {
+    currentAuthUser = user;
+  },
 
-    const path = `users/${firebaseUser.uid}`;
+  async getOrCreateProfile(authUser: SupabaseAuthUser, requestedRole: 'user' | 'owner' = 'user') {
+    if (!authUser) return null;
+
+    const path = `users/${authUser.id}`;
     try {
       const { data: existingUser, error: existingUserError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', firebaseUser.uid)
+        .eq('id', authUser.id)
         .maybeSingle();
 
       ensureNoSupabaseError(existingUserError, OperationType.GET, path);
 
       const adminEmail = 'safaribosafar@gmail.com';
-      const isAdminEmail = firebaseUser.email === adminEmail && firebaseUser.emailVerified;
+      const isAdminEmail = authUser.email === adminEmail && Boolean(authUser.email_confirmed_at);
 
       if (existingUser) {
         if (isAdminEmail && existingUser.role !== 'admin') {
           const { data: updated, error: updateError } = await supabase
             .from('users')
             .update({ role: 'admin' })
-            .eq('id', firebaseUser.uid)
+            .eq('id', authUser.id)
             .select('*')
             .single();
 
@@ -305,12 +297,12 @@ export const api = {
       }
 
       const newUser: User = {
-        id: firebaseUser.uid,
-        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
-        email: firebaseUser.email || '',
-        avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.uid}`,
+        id: authUser.id,
+        name: (typeof authUser.user_metadata?.full_name === 'string' && authUser.user_metadata.full_name) || (typeof authUser.user_metadata?.name === 'string' && authUser.user_metadata.name) || authUser.email?.split('@')[0] || 'User',
+        email: authUser.email || '',
+        avatar: (typeof authUser.user_metadata?.avatar_url === 'string' && authUser.user_metadata.avatar_url) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.id}`,
         role: isAdminEmail ? 'admin' as const : requestedRole,
-        businessId: requestedRole === 'owner' ? `b_${firebaseUser.uid}` : undefined
+        businessId: requestedRole === 'owner' ? `b_${authUser.id}` : undefined
       };
 
       const payload: TableInsert<'users'> = {
