@@ -18,6 +18,10 @@ type AuthSession = {
   user: AuthUser;
 };
 
+type SupabaseError = {
+  message: string;
+  [key: string]: unknown;
+};
 export interface SupabaseQueryOptions {
   select: string;
   orderBy?: string;
@@ -29,6 +33,10 @@ export interface SupabaseQueryOptions {
 
 const SESSION_KEY = 'supabase_auth_session';
 const listeners = new Set<(event: string, session: AuthSession | null) => void>();
+
+const missingEnvError = (): SupabaseError => ({
+  message: 'Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable auth.',
+});
 
 const safeJsonParse = <T>(value: string | null): T | null => {
   if (!value) return null;
@@ -114,6 +122,7 @@ const buildRestQuery = (options: SupabaseQueryOptions): string => {
 };
 
 const parseOAuthHashSession = async () => {
+  if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) return;
   const config = getConfig();
   if (!config || typeof window === 'undefined') return;
 
@@ -150,7 +159,18 @@ const parseOAuthHashSession = async () => {
 };
 
 const ensureOAuthSessionParsed = () => {
+  if (!hasSupabaseEnv) return;
   void parseOAuthHashSession();
+};
+
+const authHeaders = (withAuth = true) => {
+  const session = getStoredSession();
+
+  return {
+    apikey: supabaseAnonKey || '',
+    Authorization: withAuth ? `Bearer ${session?.access_token || supabaseAnonKey || ''}` : `Bearer ${supabaseAnonKey || ''}`,
+    'Content-Type': 'application/json',
+  };
 };
 
 const buildFilter = (key: string, op: string, value: string | number | boolean) =>
@@ -210,6 +230,11 @@ export const supabase = {
     },
 
     async signInWithPassword({ email, password }: { email: string; password: string }) {
+      if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
+        return { error: missingEnvError() };
+      }
+
+      const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
       const config = getConfig();
       if (!config) return { data: null, error: createMissingEnvError() };
 
@@ -234,6 +259,11 @@ export const supabase = {
     },
 
     async signUp({ email, password }: { email: string; password: string }) {
+      if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
+        return { error: missingEnvError() };
+      }
+
+      const response = await fetch(`${supabaseUrl}/auth/v1/signup`, {
       const config = getConfig();
       if (!config) return { data: null, error: createMissingEnvError() };
 
@@ -260,6 +290,8 @@ export const supabase = {
     },
 
     async signInWithOAuth({ provider, options }: { provider: 'google'; options?: { redirectTo?: string } }) {
+      if (!hasSupabaseEnv || !supabaseUrl) {
+        return { error: missingEnvError() };
       const config = getConfig();
       if (!config || typeof window === 'undefined') {
         return { error: createMissingEnvError() };
@@ -272,6 +304,12 @@ export const supabase = {
     },
 
     async signOut() {
+      if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
+        setStoredSession(null);
+        emitAuthChange('SIGNED_OUT', null);
+        return { error: null };
+      }
+
       const config = getConfig();
       const session = getStoredSession();
 
@@ -297,6 +335,9 @@ export const supabase = {
       single?: boolean;
     } = {},
   ) {
+    if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
+      return { data: null, error: missingEnvError() };
+    }
     const config = getConfig();
     if (!config) return { data: null, error: createMissingEnvError() };
 
@@ -333,6 +374,11 @@ export const supabase = {
   },
 
   async insert(table: string, value: Record<string, any>, single = false) {
+    if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
+      return { data: null, error: missingEnvError() };
+    }
+
+    const response = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
     const config = getConfig();
     if (!config) return { data: null, error: createMissingEnvError() };
 
@@ -354,6 +400,9 @@ export const supabase = {
   },
 
   async update(table: string, value: Record<string, any>, filters: Array<{ key: string; value: string | number }>) {
+    if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
+      return { error: missingEnvError() };
+    }
     const config = getConfig();
     if (!config) return { error: createMissingEnvError() };
 
@@ -372,6 +421,15 @@ export const supabase = {
   },
 
   async upsert(table: string, value: Record<string, any>, onConflict: string) {
+    if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
+      return { error: missingEnvError() };
+    }
+
+    const response = await fetch(`${supabaseUrl}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`, {
+      method: 'POST',
+      headers: {
+        ...authHeaders(true),
+        Prefer: 'resolution=merge-duplicates',
     const config = getConfig();
     if (!config) return { error: createMissingEnvError() };
 
