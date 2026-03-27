@@ -22,6 +22,25 @@ import { auth } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import type { User, Category, Subcategory, Post } from './types';
 import { TranslationProvider } from './hooks/useTranslations';
+import { motion, AnimatePresence } from 'motion/react';
+
+import { translations } from './constants';
+
+const getTranslation = (key: string) => {
+  const lang = (localStorage.getItem('iraq-compass-lang') as 'en' | 'ar' | 'ku') || 'en';
+  const keys = key.split('.');
+  let result: any = translations[lang];
+  for (const k of keys) {
+    result = result?.[k];
+  }
+  if (!result) {
+    result = translations.en;
+    for (const k of keys) {
+      result = result?.[k];
+    }
+  }
+  return result || key;
+};
 
 class ErrorBoundary extends (React.Component as any) {
   constructor(props: any) {
@@ -42,17 +61,17 @@ class ErrorBoundary extends (React.Component as any) {
       return (
         <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4 text-center">
           <div className="max-w-md p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl">
-            <h2 className="text-2xl font-bold text-white mb-4">Something went wrong</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">{getTranslation('error.title')}</h2>
             <p className="text-white/60 mb-6">
               {this.state.error?.message?.includes('{') 
-                ? "A database error occurred. Please try again later." 
-                : "An unexpected error occurred. Please refresh the page."}
+                ? getTranslation('error.database') 
+                : getTranslation('error.unexpected')}
             </p>
             <button 
               onClick={() => window.location.reload()}
               className="px-6 py-3 rounded-xl bg-primary text-white font-semibold hover:shadow-glow-primary transition-all"
             >
-              Refresh Page
+              {getTranslation('error.refresh')}
             </button>
           </div>
         </div>
@@ -64,6 +83,7 @@ class ErrorBoundary extends (React.Component as any) {
 }
 
 const MainContent: React.FC = () => {
+  const { t } = useTranslations();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -194,45 +214,71 @@ const MainContent: React.FC = () => {
         onHome={() => navigateTo('home')}
       />
       <main>
-        {page === 'home' && (
-          <>
-            <HeroSection />
-            <StoriesRing />
-            <div className="container mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    <div className="lg:col-span-2">
-                        <h2 className="text-3xl font-bold text-white mb-8">Social Ecosystem</h2>
-                        <SocialFeed posts={posts} isLoading={isSocialLoading} />
-                    </div>
-                    <div className="space-y-12">
-                        <SearchPortal onSearch={handleSearch} />
-                        <GovernorateFilter 
-                          selectedGovernorate={selectedGovernorate}
-                          onGovernorateChange={handleGovernorateChange}
-                        />
-                         <CategoryGrid 
-                          onCategoryClick={handleCategoryClick} 
-                          currentPage={currentPage}
-                          setCurrentPage={setCurrentPage}
-                        />
-                    </div>
-                </div>
-            </div>
-            <FeaturedBusinesses />
-            <PersonalizedEvents />
-            <DealsMarketplace />
-            <CommunityStories />
-            <CityGuide />
-            <InclusiveFeatures highContrast={highContrast} setHighContrast={setHighContrast} />
-          </>
-        )}
-        {page === 'listing' && listingFilter && (
-            <BusinessDirectory 
-                initialFilter={listingFilter} 
-                onBack={() => navigateTo('home')} 
-            />
-        )}
-        {page === 'dashboard' && <Dashboard user={currentUser!} onLogout={handleLogout} />}
+        <AnimatePresence mode="wait">
+          {page === 'home' && (
+            <motion.div
+              key="home"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <HeroSection />
+              <StoriesRing />
+              <CategoryGrid 
+                onCategoryClick={handleCategoryClick} 
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+              />
+              <div className="container mx-auto px-4 py-12">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                      <div className="lg:col-span-2">
+                          <h2 className="text-3xl font-bold text-white mb-8">{t('social.ecosystemTitle')}</h2>
+                          <SocialFeed posts={posts} isLoading={isSocialLoading} isLoggedIn={isLoggedIn} />
+                      </div>
+                      <div className="space-y-12">
+                          <SearchPortal onSearch={handleSearch} />
+                          <GovernorateFilter 
+                            selectedGovernorate={selectedGovernorate}
+                            onGovernorateChange={handleGovernorateChange}
+                          />
+                      </div>
+                  </div>
+              </div>
+              <FeaturedBusinesses />
+              <PersonalizedEvents />
+              <DealsMarketplace />
+              <CommunityStories />
+              <CityGuide />
+              <InclusiveFeatures highContrast={highContrast} setHighContrast={setHighContrast} />
+            </motion.div>
+          )}
+          {page === 'listing' && listingFilter && (
+              <motion.div
+                key="listing"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <BusinessDirectory 
+                    initialFilter={listingFilter} 
+                    onBack={() => navigateTo('home')} 
+                />
+              </motion.div>
+          )}
+          {page === 'dashboard' && (
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Dashboard user={currentUser!} onLogout={handleLogout} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} onLogin={handleLogin} />}
       <SubcategoryModal 

@@ -1,10 +1,12 @@
 import React from 'react';
 import { heroSlides } from '../constants';
+import { useTranslations } from '../hooks/useTranslations';
 
 export const HeroSection: React.FC = () => {
     const [activeSlide, setActiveSlide] = React.useState(0);
     const scrollRef = React.useRef<HTMLDivElement>(null);
     const autoScrollInterval = React.useRef<number | null>(null);
+    const { t } = useTranslations();
 
     const handleScroll = () => {
         if (scrollRef.current) {
@@ -68,15 +70,15 @@ export const HeroSection: React.FC = () => {
             >
                 {heroSlides.map(slide => (
                     <div key={slide.id} className="relative w-full h-full flex-shrink-0 snap-start flex items-center justify-center text-center">
-                        <img src={slide.image} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
+                        <img src={slide.image} alt={t(slide.titleKey)} className="absolute inset-0 w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-dark-bg/60"></div>
                         <div className="relative z-10 px-4">
                              <h1 className="text-4xl lg:text-6xl font-bold mb-4 text-white">
                                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent">
-                                    {slide.title}
+                                    {t(slide.titleKey)}
                                 </span>
                             </h1>
-                            <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">{slide.subtitle}</p>
+                            <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">{t(slide.subtitleKey)}</p>
                         </div>
                     </div>
                 ))}

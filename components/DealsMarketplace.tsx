@@ -56,11 +56,11 @@ export const DealsMarketplace: React.FC = () => {
               <div className="w-16 h-16 rounded-full backdrop-blur-xl bg-white/10 border border-white/20 flex items-center justify-center mb-4">
                 <img src={deal.businessLogo} alt="Business Logo" className="w-12 h-12 rounded-full" />
               </div>
-              <h3 className="text-white font-semibold text-lg mb-2">{deal.title}</h3>
-              <p className="text-white/70 text-sm mb-4">{deal.description}</p>
+              <h3 className="text-white font-semibold text-lg mb-2">{deal.titleKey ? t(deal.titleKey) : deal.title}</h3>
+              <p className="text-white/70 text-sm mb-4">{deal.descriptionKey ? t(deal.descriptionKey) : deal.description}</p>
               <div className="flex items-center gap-2 mb-4">
                 <Clock className="w-4 h-4 text-accent" />
-                <span className="text-accent text-sm font-medium">{t('deals.expires')}: {deal.expiresIn}</span>
+                <span className="text-accent text-sm font-medium">{t('deals.expires')}: {deal.expiresInKey ? t(deal.expiresInKey) : deal.expiresIn}</span>
               </div>
               <div className="mb-4">
                 <div className="flex justify-between text-xs text-white/60 mb-2">

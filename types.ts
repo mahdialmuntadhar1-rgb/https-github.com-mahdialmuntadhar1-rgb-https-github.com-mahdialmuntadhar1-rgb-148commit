@@ -37,8 +37,8 @@ export interface Business {
   name: string;
   nameAr?: string;
   nameKu?: string;
-  coverImage?: string;
   imageUrl?: string;
+  coverImage?: string;
   isPremium?: boolean;
   isFeatured?: boolean;
   category: string;
@@ -46,10 +46,7 @@ export interface Business {
   rating: number;
   distance?: number;
   status?: string;
-  image?: string;
-  verified?: boolean;
   isVerified?: boolean;
-  reviews?: number;
   reviewCount?: number;
   governorate?: string;
   city?: string;
@@ -68,14 +65,19 @@ export interface Business {
 }
 
 export interface Event {
-  id: number;
+  id: string | number;
   image: string;
   title: string;
+  titleKey?: string;
   aiRecommended?: boolean;
   date: Date;
   venue: string;
+  venueKey?: string;
+  location?: string;
   attendees: number;
   price: number;
+  category: string;
+  governorate: string;
   accessibility?: {
     wheelchairAccessible?: boolean;
     familyFriendly?: boolean;
@@ -87,14 +89,18 @@ export interface Event {
 }
 
 export interface Deal {
-  id: number;
+  id: string | number;
   discount: number;
   businessLogo: string;
   title: string;
+  titleKey?: string;
   description: string;
+  descriptionKey?: string;
   expiresIn: string;
+  expiresInKey?: string;
   claimed: number;
   total: number;
+  createdAt?: any;
 }
 
 export interface User {
@@ -104,6 +110,7 @@ export interface User {
   avatar: string;
   role: 'owner' | 'user' | 'admin';
   businessId?: string;
+  updatedAt?: any;
 }
 
 export interface Post {
@@ -113,9 +120,9 @@ export interface Post {
   businessAvatar: string;
   caption: string;
   imageUrl: string;
-  createdAt: any;
+  createdAt: Date;
   likes: number;
-  verified?: boolean;
+  isVerified?: boolean;
 }
 
 export interface BusinessPostcard {
@@ -140,7 +147,9 @@ export interface BusinessPostcard {
 
 export interface HeroSlide {
     id: number;
-    title: string;
-    subtitle: string;
+    title?: string;
+    subtitle?: string;
+    titleKey: string;
+    subtitleKey: string;
     image: string;
 }

@@ -13,7 +13,7 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
-    const { t } = useTranslations();
+    const { t, lang } = useTranslations();
     const [activeTab, setActiveTab] = React.useState<'profile' | 'architect'>('profile');
     const [statusMsg, setStatusMsg] = React.useState<{ type: 'success' | 'error', text: string } | null>(null);
     
@@ -26,12 +26,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                 businessAvatar: user.avatar
             });
             if (result.success) {
-                setStatusMsg({ type: 'success', text: 'Post created successfully!' });
+                setStatusMsg({ type: 'success', text: t('dashboard.postSuccess') || 'Post created successfully!' });
                 setTimeout(() => setStatusMsg(null), 3000);
             }
         } catch (error) {
             console.error('Error creating post:', error);
-            setStatusMsg({ type: 'error', text: 'Failed to create post.' });
+            setStatusMsg({ type: 'error', text: t('dashboard.postError') || 'Failed to create post.' });
             setTimeout(() => setStatusMsg(null), 3000);
         }
     };
@@ -45,12 +45,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
         try {
             const result = await api.updateProfile(user.id, { name, email });
             if (result.success) {
-                setStatusMsg({ type: 'success', text: 'Profile updated successfully!' });
+                setStatusMsg({ type: 'success', text: t('dashboard.profileSuccess') || 'Profile updated successfully!' });
                 setTimeout(() => setStatusMsg(null), 3000);
             }
         } catch (error) {
             console.error('Error updating profile:', error);
-            setStatusMsg({ type: 'error', text: 'Failed to update profile.' });
+            setStatusMsg({ type: 'error', text: t('dashboard.profileError') || 'Failed to update profile.' });
             setTimeout(() => setStatusMsg(null), 3000);
         }
     };
@@ -104,7 +104,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                             onClick={() => setActiveTab('profile')}
                             className={`px-8 py-2.5 rounded-xl transition-all font-medium ${activeTab === 'profile' ? 'bg-primary text-white shadow-glow-primary' : 'text-white/60 hover:text-white'}`}
                         >
-                            My Profile
+                            {t('dashboard.profileSettings')}
                         </button>
                         <button 
                             onClick={() => setActiveTab('architect')}

@@ -7,13 +7,14 @@ import type { Post } from '../types';
 interface SocialFeedProps {
     posts: Post[];
     isLoading?: boolean;
+    isLoggedIn?: boolean;
     onLike?: (postId: string) => void;
     onComment?: (postId: string) => void;
     onShare?: (postId: string) => void;
 }
 
-export const SocialFeed: React.FC<SocialFeedProps> = ({ posts, isLoading, onLike, onComment, onShare }) => {
-    const { t } = useTranslations();
+export const SocialFeed: React.FC<SocialFeedProps> = ({ posts, isLoading, isLoggedIn, onLike, onComment, onShare }) => {
+    const { t, lang } = useTranslations();
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
 
     const handleLike = (postId: string) => {
@@ -55,9 +56,9 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ posts, isLoading, onLike
                     <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
                         <MessageCircle className="w-8 h-8 text-white/20" />
                     </div>
-                    <h3 className="text-white font-semibold text-lg mb-2">{t('social.noPostsTitle') || "No updates yet"}</h3>
+                    <h3 className="text-white font-semibold text-lg mb-2">{t('social.noPostsTitle')}</h3>
                     <p className="text-white/60 text-sm max-w-xs mx-auto">
-                        {t('social.noPostsDesc') || "Follow some businesses to see their latest updates and offers here."}
+                        {t('social.noPostsDesc')}
                     </p>
                 </div>
             ) : (
@@ -68,7 +69,7 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ posts, isLoading, onLike
                         <div className="flex items-center gap-3">
                             <div className="relative">
                                 <img src={post.businessAvatar} alt={post.businessName} className="w-10 h-10 rounded-full border border-primary/30" />
-                                {post.verified && (
+                                {post.isVerified && (
                                     <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-0.5 border border-dark-bg">
                                         <CheckCircle className="w-3 h-3 text-white" />
                                     </div>
@@ -77,9 +78,9 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ posts, isLoading, onLike
                             <div>
                                 <h3 className="font-semibold text-white flex items-center gap-1">
                                     {post.businessName}
-                                    {post.verified && <CheckCircle className="w-3 h-3 text-primary" />}
+                                    {post.isVerified && <CheckCircle className="w-3 h-3 text-primary" />}
                                 </h3>
-                                <p className="text-xs text-white/50">{post.createdAt.toLocaleString()}</p>
+                                <p className="text-xs text-white/50">{post.createdAt.toLocaleDateString(lang === 'en' ? 'en-US' : lang === 'ar' ? 'ar-IQ' : 'ku-Arab-IQ', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
                             </div>
                         </div>
                         <button className="p-2 rounded-full hover:bg-white/5 text-white/50 transition-colors">
@@ -101,18 +102,22 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ posts, isLoading, onLike
                     <div className="p-4 flex items-center justify-between border-t border-white/5">
                         <div className="flex items-center gap-6">
                             <button 
-                                onClick={() => handleLike(post.id)}
-                                className={`flex items-center gap-2 transition-colors ${likedPosts.has(post.id) ? 'text-accent' : 'text-white/60 hover:text-accent'}`}
+                                onClick={() => isLoggedIn && handleLike(post.id)}
+                                disabled={!isLoggedIn}
+                                className={`flex items-center gap-2 transition-colors ${!isLoggedIn ? 'opacity-40 cursor-not-allowed' : likedPosts.has(post.id) ? 'text-accent' : 'text-white/60 hover:text-accent'}`}
+                                title={!isLoggedIn ? t('social.loginToLike') : ""}
                             >
                                 <Heart className={`w-5 h-5 ${likedPosts.has(post.id) ? 'fill-current' : ''}`} />
                                 <span className="text-sm font-medium">{post.likes + (likedPosts.has(post.id) ? 1 : 0)}</span>
                             </button>
                             <button 
-                                onClick={() => onComment?.(post.id)}
-                                className="flex items-center gap-2 text-white/60 hover:text-primary transition-colors"
+                                onClick={() => isLoggedIn && onComment?.(post.id)}
+                                disabled={!isLoggedIn}
+                                className={`flex items-center gap-2 transition-colors ${!isLoggedIn ? 'opacity-40 cursor-not-allowed' : 'text-white/60 hover:text-primary'}`}
+                                title={!isLoggedIn ? t('social.loginToComment') : ""}
                             >
                                 <MessageCircle className="w-5 h-5" />
-                                <span className="text-sm font-medium">{t('social.comments') || "Comments"}</span>
+                                <span className="text-sm font-medium">{t('social.comments')}</span>
                             </button>
                         </div>
                         <button 
@@ -120,7 +125,7 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ posts, isLoading, onLike
                             className="flex items-center gap-2 text-white/60 hover:text-secondary transition-colors"
                         >
                             <Share2 className="w-5 h-5" />
-                            <span className="text-sm font-medium">{t('social.share') || "Share"}</span>
+                            <span className="text-sm font-medium">{t('social.share')}</span>
                         </button>
                     </div>
                 </GlassCard>

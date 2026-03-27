@@ -20,20 +20,20 @@ export const mockUser: User = {
 export const heroSlides: HeroSlide[] = [
     {
         id: 1,
-        title: "Discover Iraq's Hidden Gems",
-        subtitle: "From the bustling markets of Baghdad to the serene landscapes of Kurdistan, find your next adventure.",
+        titleKey: "hero.slide1Title",
+        subtitleKey: "hero.slide1Subtitle",
         image: "https://picsum.photos/seed/h1/1920/1080"
     },
     {
         id: 2,
-        title: "Your Guide to Local Culture",
-        subtitle: "Experience authentic Iraqi culture, cuisine, and hospitality with our curated guides and stories.",
+        titleKey: "hero.slide2Title",
+        subtitleKey: "hero.slide2Subtitle",
         image: "https://picsum.photos/seed/h2/1920/1080"
     },
     {
         id: 3,
-        title: "Connect with the Community",
-        subtitle: "Join events, support local businesses, and share your experiences with a vibrant community.",
+        titleKey: "hero.slide3Title",
+        subtitleKey: "hero.slide3Subtitle",
         image: "https://picsum.photos/seed/h3/1920/1080"
     }
 ];
@@ -861,19 +861,19 @@ export const businesses: Business[] = [
 
 // Events
 export const events: Event[] = [
-  { id: 1, image: 'https://picsum.photos/seed/e1/600/400', title: 'Baghdad International Flower Festival', aiRecommended: true, date: new Date(new Date().setDate(new Date().getDate() + 3)), venue: 'Al-Zawraa Park, Baghdad', attendees: 1200, price: 0, accessibility: { wheelchairAccessible: true, familyFriendly: true } },
-  { id: 2, image: 'https://picsum.photos/seed/e2/600/400', title: 'Kurdistan Tech Conference 2024', date: new Date(new Date().setDate(new Date().getDate() + 10)), venue: 'Erbil International Fair', attendees: 850, price: 25000, accessibility: { wheelchairAccessible: true, signLanguage: true } },
-  { id: 3, image: 'https://picsum.photos/seed/e3/600/400', title: 'Traditional Iraqi Music Night', aiRecommended: true, date: new Date(new Date().setDate(new Date().getDate() + 5)), venue: 'Rashid Street, Baghdad', attendees: 300, price: 10000, accessibility: { audioDescription: true } },
-  { id: 4, image: 'https://picsum.photos/seed/e4/600/400', title: 'Slemani International Book Fair', date: new Date(new Date().setDate(new Date().getDate() + 20)), venue: 'Slemani Expo Center', attendees: 5000, price: 5000, accessibility: { familyFriendly: true, wheelchairAccessible: true } },
-  { id: 5, image: 'https://picsum.photos/seed/e5/600/400', title: 'Women in Business Networking Event', date: new Date(new Date().setDate(new Date().getDate() + 7)), venue: 'The Station, Baghdad', attendees: 150, price: 15000, accessibility: { womenOnly: true } },
-  { id: 6, image: 'https://picsum.photos/seed/e6/600/400', title: 'Family Fun Day at the Park', date: new Date(new Date().setDate(new Date().getDate() + 2)), venue: 'Sami Abdulrahman Park, Erbil', attendees: 700, price: 0, accessibility: { familyFriendly: true, sensoryFriendly: true } },
+  { id: 1, image: 'https://picsum.photos/seed/e1/600/400', title: 'Baghdad International Flower Festival', titleKey: 'events.items.flowerFestival.title', aiRecommended: true, date: new Date(new Date().setDate(new Date().getDate() + 3)), venue: 'Al-Zawraa Park, Baghdad', venueKey: 'events.items.flowerFestival.venue', attendees: 1200, price: 0, category: 'events_entertainment', governorate: 'baghdad', accessibility: { wheelchairAccessible: true, familyFriendly: true } },
+  { id: 2, image: 'https://picsum.photos/seed/e2/600/400', title: 'Kurdistan Tech Conference 2024', titleKey: 'events.items.techConf.title', date: new Date(new Date().setDate(new Date().getDate() + 10)), venue: 'Erbil International Fair', venueKey: 'events.items.techConf.venue', attendees: 850, price: 25000, category: 'business_services', governorate: 'erbil', accessibility: { wheelchairAccessible: true, signLanguage: true } },
+  { id: 3, image: 'https://picsum.photos/seed/e3/600/400', title: 'Traditional Iraqi Music Night', titleKey: 'events.items.musicNight.title', aiRecommended: true, date: new Date(new Date().setDate(new Date().getDate() + 5)), venue: 'Rashid Street, Baghdad', venueKey: 'events.items.musicNight.venue', attendees: 300, price: 10000, category: 'culture_heritage', governorate: 'baghdad', accessibility: { audioDescription: true } },
+  { id: 4, image: 'https://picsum.photos/seed/e4/600/400', title: 'Slemani International Book Fair', titleKey: 'events.items.bookFair.title', date: new Date(new Date().setDate(new Date().getDate() + 20)), venue: 'Slemani Expo Center', venueKey: 'events.items.bookFair.venue', attendees: 5000, price: 5000, category: 'education', governorate: 'sulaymaniyah', accessibility: { familyFriendly: true, wheelchairAccessible: true } },
+  { id: 5, image: 'https://picsum.photos/seed/e5/600/400', title: 'Women in Business Networking Event', titleKey: 'events.items.womenBusiness.title', date: new Date(new Date().setDate(new Date().getDate() + 7)), venue: 'The Station, Baghdad', venueKey: 'events.items.womenBusiness.venue', attendees: 150, price: 15000, category: 'business_services', governorate: 'baghdad', accessibility: { womenOnly: true } },
+  { id: 6, image: 'https://picsum.photos/seed/e6/600/400', title: 'Family Fun Day at the Park', titleKey: 'events.items.familyDay.title', date: new Date(new Date().setDate(new Date().getDate() + 2)), venue: 'Sami Abdulrahman Park, Erbil', venueKey: 'events.items.familyDay.venue', attendees: 700, price: 0, category: 'public_essential', governorate: 'erbil', accessibility: { familyFriendly: true, sensoryFriendly: true } },
 ];
 
 // Deals
 export const deals: Deal[] = [
-  { id: 1, discount: 25, businessLogo: 'https://picsum.photos/seed/bl1/64/64', title: 'Off on All Main Courses', description: 'Enjoy a delicious discount at Zaytona Restaurant.', expiresIn: '3 Days', claimed: 78, total: 200 },
-  { id: 2, discount: 50, businessLogo: 'https://picsum.photos/seed/bl2/64/64', title: 'Off Your First Month', description: 'Join Fitness World Gym and get half price.', expiresIn: '1 Week', claimed: 112, total: 150 },
-  { id: 3, discount: 15, businessLogo: 'https://picsum.photos/seed/bl3/64/64', title: 'Off All Electronics', description: 'TechCity summer sale is here. Don\'t miss out!', expiresIn: '5 Days', claimed: 204, total: 500 },
+  { id: 1, discount: 25, businessLogo: 'https://picsum.photos/seed/bl1/64/64', title: 'Off on All Main Courses', titleKey: 'deals.items.zaytona.title', description: 'Enjoy a delicious discount at Zaytona Restaurant.', descriptionKey: 'deals.items.zaytona.description', expiresIn: '3 Days', expiresInKey: 'deals.items.zaytona.expires', claimed: 78, total: 200 },
+  { id: 2, discount: 50, businessLogo: 'https://picsum.photos/seed/bl2/64/64', title: 'Off Your First Month', titleKey: 'deals.items.fitness.title', description: 'Join Fitness World Gym and get half price.', descriptionKey: 'deals.items.fitness.description', expiresIn: '1 Week', expiresInKey: 'deals.items.fitness.expires', claimed: 112, total: 150 },
+  { id: 3, discount: 15, businessLogo: 'https://picsum.photos/seed/bl3/64/64', title: 'Off All Electronics', titleKey: 'deals.items.techcity.title', description: 'TechCity summer sale is here. Don\'t miss out!', descriptionKey: 'deals.items.techcity.description', expiresIn: '5 Days', expiresInKey: 'deals.items.techcity.expires', claimed: 204, total: 500 },
 ];
 
 // Governorates
@@ -940,7 +940,13 @@ export const translations = {
             restaurants: "Restaurants",
             entertainment: "Entertainment",
             deals: "Deals"
-        }
+        },
+        slide1Title: "Discover Iraq's Hidden Gems",
+        slide1Subtitle: "From the bustling markets of Baghdad to the serene landscapes of Kurdistan, find your next adventure.",
+        slide2Title: "Your Guide to Local Culture",
+        slide2Subtitle: "Experience authentic Iraqi culture, cuisine, and hospitality with our curated guides and stories.",
+        slide3Title: "Connect with the Community",
+        slide3Subtitle: "Join events, support local businesses, and share your experiences with a vibrant community.",
     },
     stories: {
         add: "Add Yours",
@@ -949,6 +955,8 @@ export const translations = {
         community: "Community",
         addYours: "Add Yours",
         sendMessage: "Send message...",
+        noStories: "No stories shared yet.",
+        latestStatus: "LATEST STATUS",
     },
     filter: {
         governorate: "Filter by Governorate"
@@ -1141,7 +1149,10 @@ export const translations = {
     },
     featured: {
         title: "Featured Businesses",
-        premium: "Premium"
+        premium: "Premium",
+        noFeatured: "No featured businesses at the moment.",
+        open: "Open",
+        closed: "Closed",
     },
     actions: {
         book: "Book Now",
@@ -1159,12 +1170,27 @@ export const translations = {
         going: "going",
         free: "FREE",
         viewDetails: "View Details",
+        noEvents: "No events found for this category.",
+        items: {
+            flowerFestival: { title: "Baghdad International Flower Festival", venue: "Al-Zawraa Park, Baghdad" },
+            techConf: { title: "Kurdistan Tech Conference 2024", venue: "Erbil International Fair" },
+            musicNight: { title: "Traditional Iraqi Music Night", venue: "Rashid Street, Baghdad" },
+            bookFair: { title: "Slemani International Book Fair", venue: "Slemani Expo Center" },
+            womenBusiness: { title: "Women in Business Networking Event", venue: "The Station, Baghdad" },
+            familyDay: { title: "Family Fun Day at the Park", venue: "Sami Abdulrahman Park, Erbil" }
+        }
     },
     deals: {
         title: "Deals Marketplace",
         expires: "Expires",
         claimed: "Claimed",
         claimNow: "Claim Now",
+        noDeals: "No active deals at the moment.",
+        items: {
+            zaytona: { title: "Off on All Main Courses", description: "Enjoy a delicious discount at Zaytona Restaurant.", expires: "3 Days" },
+            fitness: { title: "Off Your First Month", description: "Join Fitness World Gym and get half price.", expires: "1 Week" },
+            techcity: { title: "Off All Electronics", description: "TechCity summer sale is here. Don't miss out!", expires: "5 Days" }
+        }
     },
     cityGuide: {
         title: "AI-Powered City Guide",
@@ -1177,6 +1203,12 @@ export const translations = {
         addWaypoints: "Generate a journey to see your waypoints here.",
         startNavigation: "Start Navigation",
         generateError: "Sorry, I couldn't generate a journey. Please try again.",
+        errorTitle: "Generation Failed",
+        suggestions: [
+            "a historical tour of baghdad",
+            "best restaurants in Erbil",
+            "a one-day trip in Sulaymaniyah"
+        ]
     },
     directory: {
         title: "Business Directory",
@@ -1189,6 +1221,18 @@ export const translations = {
         view: "View",
         contact: "Contact",
         viewProfile: "View Profile",
+        city: "City",
+        cityPlaceholder: "Search by city...",
+        governorate: "Governorate",
+        showing: "Showing",
+        businesses: "businesses",
+        loading: "Searching for local businesses...",
+        errorTitle: "Oops! Something went wrong",
+        errorLoading: "Failed to load businesses. Please try again.",
+        retry: "Try Again",
+        noResultsTitle: "No businesses found",
+        noResultsDesc: "We couldn't find any businesses matching your current filters. Try adjusting your search.",
+        loadMore: "Load More",
     },
     inclusive: {
         title: "A Platform For Everyone",
@@ -1250,6 +1294,28 @@ export const translations = {
         password: "Password",
         language: "Preferred Language",
         createAccount: "Create Account",
+        welcomeBack: "Welcome back to Iraq Compass",
+        joinEcosystem: "Join the Social Business Ecosystem",
+        roleUser: "Visitor",
+        roleOwner: "Business Owner",
+        exploreConnect: "Explore & Connect",
+        growBusiness: "Grow Your Business",
+        continueGoogle: "Continue with Google",
+        orEmail: "Or continue with email",
+        noAccount: "Don't have an account? Sign up",
+        haveAccount: "Already have an account? Sign in",
+    },
+    social: {
+        ecosystemTitle: "Social Ecosystem",
+        noPostsTitle: "No updates yet",
+        noPostsDesc: "Follow some businesses to see their latest updates and offers here.",
+        loginToLike: "Login to like",
+        loginToComment: "Login to comment",
+        comments: "Comments",
+        share: "Share",
+        postPlaceholder: "What's new with your business?",
+        addPhoto: "Add Photo",
+        post: "Post",
     },
     dashboard: {
         welcome: "Welcome",
@@ -1259,12 +1325,23 @@ export const translations = {
         newPassword: "New Password",
         myFavorites: "My Favorites",
         recentActivity: "Recent Activity",
+        createPost: "Create a Post",
+        postSuccess: "Post created successfully!",
+        postError: "Failed to create post.",
+        profileSuccess: "Profile updated successfully!",
+        profileError: "Failed to update profile.",
     },
     activity: {
         favorite: "Added to favorites",
         view: "Viewed event",
         search: "Searched for",
-    }
+    },
+    error: {
+        title: "Something went wrong",
+        database: "A database error occurred. Please try again later.",
+        unexpected: "An unexpected error occurred. Please refresh the page.",
+        refresh: "Refresh Page",
+    },
   },
   ar: {
     items: "عناصر",
@@ -1282,15 +1359,22 @@ export const translations = {
             restaurants: "مطاعم",
             entertainment: "ترفيه",
             deals: "عروض"
-        }
+        },
+        slide1Title: "اكتشف جواهر العراق الخفية",
+        slide1Subtitle: "من أسواق بغداد الصاخبة إلى مناظر كردستان الهادئة، ابحث عن مغامرتك القادمة.",
+        slide2Title: "دليلك للثقافة المحلية",
+        slide2Subtitle: "جرب الثقافة العراقية الأصيلة والمأكولات والضيافة من خلال أدلتنا وقصصنا المنسقة.",
+        slide3Title: "تواصل مع المجتمع",
+        slide3Subtitle: "انضم إلى الفعاليات، وادعم الشركات المحلية، وشارك تجاربك مع مجتمع حيوي.",
     },
     stories: {
         add: "أضف قصتك",
         communityTitle: "قصص المجتمع",
         business: "عمل تجاري",
         community: "مجتمع",
-        addYours: "أضف قصتك",
         sendMessage: "أرسل رسالة...",
+        noStories: "لا توجد قصص منشورة بعد.",
+        latestStatus: "آخر حالة",
     },
     filter: {
         governorate: "التصفية حسب المحافظة"
@@ -1482,55 +1566,91 @@ export const translations = {
         public_wifi: "مناطق واي فاي عامة",
     },
     featured: {
-        title: "أعمال تجارية مميزة",
-        premium: "بريميوم"
+        title: "الأعمال المميزة",
+        premium: "بريميوم",
+        noFeatured: "لا توجد أعمال مميزة في الوقت الحالي.",
+        open: "مفتوح",
+        closed: "مغلق",
     },
     actions: {
         book: "احجز الآن",
         details: "عرض التفاصيل"
     },
     events: {
-        personalizedTitle: "فعاليات، مخصصة لك",
+        personalizedTitle: "فعاليات مخصصة لك",
         tabs: {
             forYou: "لك",
-            trending: "شائعة",
+            trending: "شائع",
             nearYou: "بالقرب منك",
-            friendsGoing: "الأصدقاء ذاهبون"
+            friendsGoing: "أصدقاء ذاهبون"
         },
         aiPick: "اختيار الذكاء الاصطناعي",
-        going: "ذاهبون",
+        going: "ذاهب",
         free: "مجاني",
         viewDetails: "عرض التفاصيل",
+        noEvents: "لم يتم العثور على فعاليات لهذه الفئة.",
+        items: {
+            flowerFestival: { title: "مهرجان بغداد الدولي للزهور", venue: "منتزه الزوراء، بغداد" },
+            techConf: { title: "مؤتمر كردستان للتكنولوجيا 2024", venue: "معرض أربيل الدولي" },
+            musicNight: { title: "ليلة الموسيقى العراقية التقليدية", venue: "شارع الرشيد، بغداد" },
+            bookFair: { title: "معرض السليمانية الدولي للكتاب", venue: "مركز معرض السليمانية" },
+            womenBusiness: { title: "فعالية تواصل سيدات الأعمال", venue: "المحطة، بغداد" },
+            familyDay: { title: "يوم ترفيهي عائلي في المنتزه", venue: "منتزه سامي عبد الرحمن، أربيل" }
+        }
     },
     deals: {
         title: "سوق العروض",
         expires: "ينتهي في",
         claimed: "تم الحصول عليها",
-        claimNow: "احصل على العرض الآن",
+        claimNow: "احصل عليها الآن",
+        noDeals: "لا توجد عروض نشطة في الوقت الحالي.",
+        items: {
+            zaytona: { title: "خصم على جميع الأطباق الرئيسية", description: "استمتع بخصم لذيذ في مطعم زيتونة.", expires: "3 أيام" },
+            fitness: { title: "خصم على شهرك الأول", description: "انضم إلى فيتنس وورلد جيم واحصل على نصف السعر.", expires: "أسبوع واحد" },
+            techcity: { title: "خصم على جميع الإلكترونيات", description: "تخفيضات الصيف في تيك سيتي هنا. لا تفوت الفرصة!", expires: "5 أيام" }
+        }
     },
     cityGuide: {
-        title: "دليل المدينة بالذكاء الاصطناعي",
+        title: "دليل المدينة المدعوم بالذكاء الاصطناعي",
         planJourney: "خطط لرحلتك",
         searchPlaces: "مثال: رحلة ليوم واحد في بغداد",
         generateJourney: "إنشاء",
         generating: "جاري الإنشاء...",
-        trySaying: "جرّب أن تقول",
+        trySaying: "جرب قول",
         yourJourney: "رحلتك",
-        addWaypoints: "قم بإنشاء رحلة لرؤية نقاط طريقك هنا.",
-        startNavigation: "ابدأ الملاحة",
+        addWaypoints: "أنشئ رحلة لرؤية نقاط التوقف هنا.",
+        startNavigation: "بدء الملاحة",
         generateError: "عذراً، لم أتمكن من إنشاء رحلة. يرجى المحاولة مرة أخرى.",
+        errorTitle: "فشل الإنشاء",
+        suggestions: [
+            "جولة تاريخية في بغداد",
+            "أفضل المطاعم في أربيل",
+            "رحلة ليوم واحد في السليمانية"
+        ]
     },
     directory: {
         title: "دليل الأعمال",
-        filters: "فلاتر",
+        filters: "الفلاتر",
         reset: "إعادة تعيين",
         category: "الفئة",
         allCategories: "جميع الفئات",
-        minimumRating: "أقل تقييم",
-        businessesFound: "عمل تجاري موجود",
+        minimumRating: "أدنى تقييم",
+        businessesFound: "أعمال تم العثور عليها",
         view: "عرض",
         contact: "اتصال",
         viewProfile: "عرض الملف الشخصي",
+        city: "المدينة",
+        cityPlaceholder: "ابحث حسب المدينة...",
+        governorate: "المحافظة",
+        showing: "عرض",
+        businesses: "أعمال تجارية",
+        loading: "جاري البحث عن أعمال محلية...",
+        errorTitle: "عذراً! حدث خطأ ما",
+        errorLoading: "فشل تحميل الأعمال. يرجى المحاولة مرة أخرى.",
+        retry: "حاول مرة أخرى",
+        noResultsTitle: "لم يتم العثور على أعمال",
+        noResultsDesc: "لم نتمكن من العثور على أي أعمال تطابق الفلاتر الحالية. جرب تعديل بحثك.",
+        loadMore: "تحميل المزيد",
     },
     inclusive: {
         title: "منصة للجميع",
@@ -1592,6 +1712,28 @@ export const translations = {
         password: "كلمة المرور",
         language: "اللغة المفضلة",
         createAccount: "إنشاء حساب",
+        welcomeBack: "مرحباً بعودتك إلى بوصلة العراق",
+        joinEcosystem: "انضم إلى النظام البيئي للأعمال الاجتماعية",
+        roleUser: "زائر",
+        roleOwner: "صاحب عمل",
+        exploreConnect: "استكشف وتواصل",
+        growBusiness: "نمِ عملك",
+        continueGoogle: "المتابعة باستخدام Google",
+        orEmail: "أو المتابعة عبر البريد الإلكتروني",
+        noAccount: "ليس لديك حساب؟ سجل الآن",
+        haveAccount: "لديك حساب بالفعل؟ سجل دخولك",
+    },
+    social: {
+        ecosystemTitle: "النظام البيئي الاجتماعي",
+        noPostsTitle: "لا توجد تحديثات بعد",
+        noPostsDesc: "اتبع بعض الشركات لرؤية أحدث تحديثاتها وعروضها هنا.",
+        loginToLike: "سجل الدخول للإعجاب",
+        loginToComment: "سجل الدخول للتعليق",
+        comments: "تعليقات",
+        share: "مشاركة",
+        postPlaceholder: "ما الجديد في عملك؟",
+        addPhoto: "إضافة صورة",
+        post: "نشر",
     },
     dashboard: {
         welcome: "أهلاً بك",
@@ -1601,12 +1743,23 @@ export const translations = {
         newPassword: "كلمة مرور جديدة",
         myFavorites: "مفضلتي",
         recentActivity: "النشاط الأخير",
+        createPost: "إنشاء منشور",
+        postSuccess: "تم إنشاء المنشور بنجاح!",
+        postError: "فشل إنشاء المنشور.",
+        profileSuccess: "تم تحديث الملف الشخصي بنجاح!",
+        profileError: "فشل تحديث الملف الشخصي.",
     },
     activity: {
         favorite: "أضيف إلى المفضلة",
         view: "تم عرض الفعالية",
         search: "تم البحث عن",
-    }
+    },
+    error: {
+        title: "حدث خطأ ما",
+        database: "حدث خطأ في قاعدة البيانات. يرجى المحاولة مرة أخرى لاحقاً.",
+        unexpected: "حدث خطأ غير متوقع. يرجى تحديث الصفحة.",
+        refresh: "تحديث الصفحة",
+    },
   },
   ku: {
     items: "شتەکان",
@@ -1624,7 +1777,13 @@ export const translations = {
             restaurants: "چێشتخانەکان",
             entertainment: "کات بەسەربردن",
             deals: "داشکانەکان"
-        }
+        },
+        slide1Title: "گەوهەرە شاراوەکانی عێراق بدۆزەرەوە",
+        slide1Subtitle: "لە بازاڕە قەرەباڵغەکانی بەغداوە تا دیمەنە ئارامەکانی کوردستان، سەرکێشی داهاتووت بدۆزەرەوە.",
+        slide2Title: "ڕێبەری تۆ بۆ کلتوری ناوخۆیی",
+        slide2Subtitle: "کلتوری ڕەسەنی عێراقی و خواردن و میوانداری ئەزموون بکە لە ڕێگەی ڕێبەر و چیرۆکەکانمانەوە.",
+        slide3Title: "پەیوەندی لەگەڵ کۆمەڵگە ببەستە",
+        slide3Subtitle: "بەشداری لە چالاکییەکان بکە، پشتگیری لە کارە ناوخۆییەکان بکە و ئەزموونەکانت لەگەڵ کۆمەڵگەیەکی زیندوو هاوبەش بکە.",
     },
     stories: {
         add: "هی خۆت زیاد بکە",
@@ -1633,6 +1792,8 @@ export const translations = {
         community: "کۆمەڵگە",
         addYours: "هی خۆت زیاد بکە",
         sendMessage: "نامە بنێرە...",
+        noStories: "هێشتا هیچ چیرۆکێک هاوبەش نەکراوە.",
+        latestStatus: "دوایین بارودۆخ",
     },
     filter: {
         governorate: "فلتەرکردن بەپێی پارێزگا"
@@ -1680,12 +1841,12 @@ export const translations = {
         all: "هەمووی",
         // Dining
         dining_restaurants: "چێشتخانەکان",
-        local_traditional: "ناوخۆیی و truyềnëی",
+        local_traditional: "ناوخۆیی و تەقلیدی",
         international_cuisine: "خواردنی نێودەوڵەتی",
         fine_dining: "خواردنی نایاب",
         casual_family: "ئاسایی و خێزانی",
         specialty_coffee: "قاوەی تایبەت",
-        traditional_tea_houses: "چایخانە truyềnëییەکان",
+        traditional_tea_houses: "چایخانە تەقلیدییەکان",
         dessert_pastry: "شیرینی و هەویرکاری",
         quick_service: "خزمەتگوزاری خێرا",
         food_trucks: "ئۆتۆمبێلی خواردن",
@@ -1710,7 +1871,7 @@ export const translations = {
         shopping_department_stores: "فرۆشگا گەورەکان",
         shopping_outlet_centers: "ناوەندەکانی ئاوتلێت",
         shopping_local_markets: "بازاڕە ناوخۆییەکان",
-        shopping_traditional_souqs: "بازاڕە truyềnëییەکان",
+        shopping_traditional_souqs: "بازاڕە تەقلیدییەکان",
         shopping_farmers_markets: "بازاڕی جووتیاران",
         shopping_night_markets: "بازاڕە شەوانەکان",
         shopping_specialty: "بازاڕکردنی تایبەتمەند",
@@ -1825,7 +1986,10 @@ export const translations = {
     },
     featured: {
         title: "کارە دیارەکان",
-        premium: "پریمیۆم"
+        premium: "پریمیۆم",
+        noFeatured: "لە ئێستادا هیچ کارێکی دیار نییە.",
+        open: "کراوەیە",
+        closed: "داخراوە",
     },
     actions: {
         book: "ئێستا حیجز بکە",
@@ -1843,12 +2007,27 @@ export const translations = {
         going: "دەچن",
         free: "بێبەرامبەر",
         viewDetails: "بینینی وردەکارییەکان",
+        noEvents: "هیچ بۆنەیەک بۆ ئەم پۆلە نەدۆزرایەوە.",
+        items: {
+            flowerFestival: { title: "فێستیڤاڵی نێودەوڵەتی گوڵی بەغدا", venue: "پارکی زەورا، بەغدا" },
+            techConf: { title: "کۆنفرانسی تەکنەلۆژیای کوردستان ٢٠٢٤", venue: "پێشانگای نێودەوڵەتی هەولێر" },
+            musicNight: { title: "شەوی مۆسیقای ڕەسەنی عێراقی", venue: "شەقامی ڕەشید، بەغدا" },
+            bookFair: { title: "پێشانگای نێودەوڵەتی کتێبی سلێمانی", venue: "سەنتەری پێشانگای سلێمانی" },
+            womenBusiness: { title: "بۆنەی تۆڕبەستنی ژنان لە کاردا", venue: "زە ستەیشن، بەغدا" },
+            familyDay: { title: "ڕۆژی خۆشی خێزانی لە پارکەکەدا", venue: "پارکی سامی عەبدولڕەحمان، هەولێر" }
+        }
     },
     deals: {
         title: "بازاڕی داشکاندنەکان",
         expires: "کۆتایی دێت",
         claimed: "داواکراو",
         claimNow: "ئێستا داوای بکە",
+        noDeals: "لە ئێستادا هیچ داشکاندنێکی چالاک نییە.",
+        items: {
+            zaytona: { title: "داشکاندن لەسەر هەموو ژەمە سەرەکییەکان", description: "چێژ لە داشکاندنێکی بەتام وەربگرە لە چێشتخانەی زەیتونە.", expires: "٣ ڕۆژ" },
+            fitness: { title: "داشکاندن لەسەر مانگی یەکەمت", description: "ببە بە ئەندام لە فیتنس وۆرڵد جیم و نیوەی نرخەکە وەربگرە.", expires: "١ هەفتە" },
+            techcity: { title: "داشکاندن لەسەر هەموو ئەلیکترۆنیاتەکان", description: "داشکاندنی هاوینەی تێک سیتی لێرەیە. لەدەستی مەدە!", expires: "٥ ڕۆژ" }
+        }
     },
     cityGuide: {
         title: "ڕێبەری شار بە زیرەکی دەستکرد",
@@ -1861,6 +2040,12 @@ export const translations = {
         addWaypoints: "گەشتێک دروست بکە بۆ بینینی خاڵەکانی ڕێگاکەت لێرە.",
         startNavigation: "دەستپێکردنی ڕێدۆزی",
         generateError: "ببورە، نەمتوانی گەشتێک دروست بکەم. تکایە دووبارە هەوڵ بدەوە.",
+        errorTitle: "دروستکردن سەرکەوتوو نەبوو",
+        suggestions: [
+            "گەشتێکی مێژوویی لە بەغداد",
+            "باشترین چێشتخانەکان لە هەولێر",
+            "گەشتێکی یەک ڕۆژە لە سلێمانی"
+        ]
     },
     directory: {
         title: "لیستی کارەکان",
@@ -1873,6 +2058,18 @@ export const translations = {
         view: "بینین",
         contact: "پەیوەندی",
         viewProfile: "بینینی پرۆفایل",
+        city: "شار",
+        cityPlaceholder: "بگەڕێ بەپێی شار...",
+        governorate: "پارێزگا",
+        showing: "پیشاندانی",
+        businesses: "کارەکان",
+        loading: "گەڕان بۆ کارە ناوخۆییەکان...",
+        errorTitle: "ئۆپس! شتێک هەڵەیە",
+        errorLoading: "بارکردنی کارەکان سەرکەوتوو نەبوو. تکایە دووبارە هەوڵ بدەوە.",
+        retry: "دووبارە هەوڵ بدەوە",
+        noResultsTitle: "هیچ کارێک نەدۆزرایەوە",
+        noResultsDesc: "نەمانتوانی هیچ کارێک بدۆزینەوە کە لەگەڵ فلتەرەکانت بگونجێت. هەوڵ بدە گەڕانەکەت دەستکاری بکەیت.",
+        loadMore: "بارکردنی زیاتر",
     },
     inclusive: {
         title: "سەکۆیەک بۆ هەمووان",
@@ -1934,6 +2131,28 @@ export const translations = {
         password: "وشەی نهێنی",
         language: "زمانی دڵخواز",
         createAccount: "هەژمار دروست بکە",
+        welcomeBack: "بەخێربێیتەوە بۆ قیبلەنمای عێراق",
+        joinEcosystem: "ببە بە بەشێک لە سیستەمی بازرگانی کۆمەڵایەتی",
+        roleUser: "سەردانکەر",
+        roleOwner: "خاوەن کار",
+        exploreConnect: "بگەڕێ و پەیوەندی ببەستە",
+        growBusiness: "کارت گەشە پێ بدە",
+        continueGoogle: "بەردەوام بە لەگەڵ Google",
+        orEmail: "یان بەردەوام بە بە ئیمەیڵ",
+        noAccount: "هەژمارت نییە؟ ناوت تۆمار بکە",
+        haveAccount: "پێشتر هەژمارت دروستکردووە؟ بچۆ ژوورەوە",
+    },
+    social: {
+        ecosystemTitle: "کۆمەڵگەی بازرگانی کۆمەڵایەتی",
+        noPostsTitle: "هیچ نوێکارییەک نییە",
+        noPostsDesc: "شوێن هەندێک کار بکەوە بۆ بینینی نوێترین نوێکاری و ئۆفەرەکانیان لێرە.",
+        loginToLike: "بچۆ ژوورەوە بۆ لایک کردن",
+        loginToComment: "بچۆ ژوورەوە بۆ کۆمێنت نووسین",
+        comments: "کۆمێنتەکان",
+        share: "هاوبەشکردن",
+        postPlaceholder: "چی نوێ هەیە لە کارتدا؟",
+        addPhoto: "وێنە زیاد بکە",
+        post: "بڵاوکردنەوە",
     },
     dashboard: {
         welcome: "بەخێربێیت",
@@ -1943,11 +2162,22 @@ export const translations = {
         newPassword: "وشەی نهێنی نوێ",
         myFavorites: "دڵخوازەکانم",
         recentActivity: "چالاکیەکانی دوایی",
+        createPost: "پۆستێک دروست بکە",
+        postSuccess: "پۆستەکە بە سەرکەوتوویی دروستکرا!",
+        postError: "دروستکردنی پۆستەکە سەرکەوتوو نەبوو.",
+        profileSuccess: "پرۆفایلەکە بە سەرکەوتوویی نوێکرایەوە!",
+        profileError: "نوێکردنەوەی پرۆفایلەکە سەرکەوتوو نەبوو.",
     },
     activity: {
         favorite: "زیادکرا بۆ دڵخوازەکان",
         view: "بۆنەکە بینرا",
         search: "گەڕان کرا بۆ",
-    }
+    },
+    error: {
+        title: "شتێک هەڵەیە",
+        database: "هەڵەیەک لە بنکەی زانیاری ڕوویدا. تکایە دواتر دووبارە هەوڵ بدەوە.",
+        unexpected: "هەڵەیەکی چاوەڕواننەکراو ڕوویدا. تکایە لاپەڕەکە نوێ بکەرەوە.",
+        refresh: "نوێکردنەوەی لاپەڕە",
+    },
   },
 };

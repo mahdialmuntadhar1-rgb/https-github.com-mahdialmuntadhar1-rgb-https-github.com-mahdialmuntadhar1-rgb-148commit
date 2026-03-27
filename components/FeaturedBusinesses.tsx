@@ -92,7 +92,7 @@ export const FeaturedBusinesses: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    {business.status || 'Open'}
+                    {business.status ? t(`featured.${business.status.toLowerCase()}`) : t('featured.open')}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">

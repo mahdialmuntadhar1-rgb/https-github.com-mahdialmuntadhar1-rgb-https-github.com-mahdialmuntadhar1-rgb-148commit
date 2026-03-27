@@ -72,7 +72,7 @@ export const CommunityStories: React.FC = () => {
                 {story.isLive && (
                   <div className="absolute top-3 start-3 px-2 py-1 rounded-full bg-red-500 flex items-center gap-1">
                     <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                    <span className="text-white text-[10px] font-bold uppercase tracking-wider">LATEST STATUS</span>
+                    <span className="text-white text-[10px] font-bold uppercase tracking-wider">{t('stories.latestStatus')}</span>
                   </div>
                 )}
               </div>

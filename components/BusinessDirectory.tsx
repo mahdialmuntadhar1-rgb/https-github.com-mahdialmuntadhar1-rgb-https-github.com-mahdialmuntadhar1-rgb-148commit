@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
-import { categories } from '../constants';
+import { categories, governorates } from '../constants';
 import { api } from '../services/api';
 import type { Business } from '../types';
 import { Star, Grid3x3, List, MapPin, CheckCircle, ArrowLeft } from './icons';
@@ -21,7 +21,7 @@ const BusinessCard: React.FC<BusinessCardProps> = ({ business, viewMode }) => {
                       
   const displayImage = business.imageUrl || business.image || business.coverImage || 'https://picsum.photos/seed/placeholder/400/300';
   const displayReviews = business.reviewCount ?? business.reviews ?? 0;
-  const isVerified = business.isVerified ?? business.verified ?? false;
+  const isVerified = business.isVerified ?? false;
 
   if (viewMode === 'list') {
     return (
@@ -114,7 +114,7 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
         setHasMore(result.hasMore);
     } catch (err) {
         console.error('Error fetching businesses:', err);
-        setError(t('directory.errorLoading') || "Failed to load businesses. Please try again.");
+        setError(t('directory.errorLoading'));
     } finally {
         setIsLoading(false);
     }
@@ -152,12 +152,12 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
               </h3>
               
               <div className="mb-6">
-                <label className="block text-white/80 text-sm mb-2">{t('directory.city') || "City"}</label>
+                <label className="block text-white/80 text-sm mb-2">{t('directory.city')}</label>
                 <input 
                   type="text"
                   value={filters.city}
                   onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-                  placeholder={t('directory.cityPlaceholder') || "Search by city..."}
+                  placeholder={t('directory.cityPlaceholder')}
                   className="w-full px-4 py-3 rounded-xl backdrop-blur-xl bg-white/10 border border-white/20 text-white outline-none focus:border-primary transition-colors"
                 />
               </div>
@@ -173,6 +173,23 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
                   ))}
                 </select>
               </div>
+
+              <div className="mb-6">
+                <label className="block text-white/80 text-sm mb-2">{t('directory.governorate')}</label>
+                <select 
+                  value={filters.governorate} 
+                  onChange={(e) => setFilters({ ...filters, governorate: e.target.value })} 
+                  className="w-full px-4 py-3 rounded-xl backdrop-blur-xl bg-white/10 border border-white/20 text-white outline-none appearance-none bg-no-repeat bg-right-4" 
+                  style={{backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'left 0.75rem center', backgroundSize: '1.5em 1.5em'}}
+                >
+                  {governorates.map(gov => (
+                    <option key={gov.id} value={gov.id} className="bg-dark-bg">
+                      {t(gov.nameKey)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="text-white/80 text-sm mb-2 block">{t('directory.minimumRating')}</label>
                 <div className="flex gap-2">
@@ -187,7 +204,7 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
           </div>
           <div className="lg:col-span-3">
             <div className="flex items-center justify-between mb-6">
-              <p className="text-white/80">{businessesData.length} {t('directory.businessesShown') || "businesses shown"}</p>
+              <p className="text-white/80">{t('directory.showing')} {businessesData.length} {t('directory.businesses')}</p>
               <div className="flex items-center gap-2 backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl p-1">
                 <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-primary' : 'hover:bg-white/10'}`}><Grid3x3 className="w-5 h-5 text-white" /></button>
                 <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-primary' : 'hover:bg-white/10'}`}><List className="w-5 h-5 text-white" /></button>
@@ -197,20 +214,20 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
             {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
                     <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                    <p className="text-white/40 text-sm animate-pulse">{t('directory.loading') || "Searching for local businesses..."}</p>
+                    <p className="text-white/40 text-sm animate-pulse">{t('directory.loading')}</p>
                 </div>
             ) : error ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                     <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
                         <ArrowLeft className="w-8 h-8 text-red-400 rotate-180" />
                     </div>
-                    <h3 className="text-white font-semibold text-lg mb-2">{t('directory.errorTitle') || "Oops! Something went wrong"}</h3>
+                    <h3 className="text-white font-semibold text-lg mb-2">{t('directory.errorTitle')}</h3>
                     <p className="text-white/60 text-sm mb-6 max-w-xs mx-auto">{error}</p>
                     <button 
                         onClick={() => fetchBusinesses()} 
                         className="px-6 py-2 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all"
                     >
-                        {t('directory.retry') || "Try Again"}
+                        {t('directory.retry')}
                     </button>
                 </div>
             ) : businessesData.length === 0 ? (
@@ -218,9 +235,9 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
                     <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
                         <MapPin className="w-8 h-8 text-white/20" />
                     </div>
-                    <h3 className="text-white font-semibold text-lg mb-2">{t('directory.noResultsTitle') || "No businesses found"}</h3>
+                    <h3 className="text-white font-semibold text-lg mb-2">{t('directory.noResultsTitle')}</h3>
                     <p className="text-white/60 text-sm max-w-xs mx-auto">
-                        {t('directory.noResultsDesc') || "We couldn't find any businesses matching your current filters. Try adjusting your search."}
+                        {t('directory.noResultsDesc')}
                     </p>
                 </div>
             ) : (
@@ -236,7 +253,7 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
                         onClick={() => fetchBusinesses(true)}
                         className="px-8 py-3 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-semibold hover:shadow-glow-primary disabled:opacity-50 transition-all"
                     >
-                        {isLoading ? t('directory.loading') : (t('directory.loadMore') || "Load More")}
+                        {isLoading ? t('directory.loading') : t('directory.loadMore')}
                     </button>
                 </div>
             )}

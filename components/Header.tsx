@@ -3,6 +3,7 @@ import type { User } from '../types';
 import { Sparkles, User as UserIcon } from './icons';
 import { useTranslations } from '../hooks/useTranslations';
 import { LanguageSelector } from './LanguageSelector';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface HeaderProps {
     isLoggedIn: boolean;
@@ -32,12 +33,21 @@ export const Header: React.FC<HeaderProps> = ({ isLoggedIn, user, onSignIn, onSi
                                 <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full" />
                                 <span className="hidden md:block text-white/90 font-medium">{user.name}</span>
                             </button>
-                            {dropdownOpen && (
-                                <div className="absolute end-0 mt-2 w-48 backdrop-blur-2xl bg-dark-bg/90 border border-white/20 rounded-xl shadow-soft p-2" onMouseLeave={() => setDropdownOpen(false)}>
-                                    <button onClick={onDashboard} className="w-full text-start px-4 py-2 rounded-lg hover:bg-white/10 transition-colors">{t('header.dashboard')}</button>
-                                    <button onClick={onSignOut} className="w-full text-start px-4 py-2 rounded-lg text-accent hover:bg-white/10 transition-colors">{t('header.logout')}</button>
-                                </div>
-                            )}
+                            <AnimatePresence>
+                                {dropdownOpen && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute end-0 mt-2 w-48 backdrop-blur-2xl bg-dark-bg/90 border border-white/20 rounded-xl shadow-soft p-2" 
+                                        onMouseLeave={() => setDropdownOpen(false)}
+                                    >
+                                        <button onClick={onDashboard} className="w-full text-start px-4 py-2 rounded-lg hover:bg-white/10 transition-colors">{t('header.dashboard')}</button>
+                                        <button onClick={onSignOut} className="w-full text-start px-4 py-2 rounded-lg text-accent hover:bg-white/10 transition-colors">{t('header.logout')}</button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     ) : (
                         <button onClick={onSignIn} className="p-2 sm:px-6 sm:py-2 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-semibold hover:shadow-glow-primary transition-all duration-300 flex items-center gap-2">

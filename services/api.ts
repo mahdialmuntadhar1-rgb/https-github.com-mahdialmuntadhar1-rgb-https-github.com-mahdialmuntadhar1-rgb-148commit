@@ -123,7 +123,7 @@ export const api = {
                 return { 
                     id: doc.id, 
                     ...d,
-                    // Normalize verified status
+                    // Normalize verified status to isVerified
                     isVerified: d.isVerified ?? d.verified ?? false
                 } as Business;
             });
@@ -157,7 +157,8 @@ export const api = {
                 const post = { 
                     id: doc.id, 
                     ...data,
-                    createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date()
+                    createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
+                    isVerified: data.isVerified ?? data.verified ?? false
                 } as Post;
                 postsMap.set(post.id, post);
             });
@@ -253,8 +254,9 @@ export const api = {
         try {
             const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
             
-            // Check if this is the admin email for bootstrapping
-            const isAdminEmail = firebaseUser.email === 'safaribosafar@gmail.com';
+            // Bootstrapping the first admin based on the provided User Email
+            const adminEmail = 'safaribosafar@gmail.com';
+            const isAdminEmail = firebaseUser.email === adminEmail && firebaseUser.emailVerified;
             
             if (userDoc.exists()) {
                 const userData = userDoc.data() as User;
@@ -317,8 +319,9 @@ export const api = {
                 return { 
                     id: doc.id, 
                     ...data,
+                    isVerified: data.isVerified ?? data.verified ?? false,
                     updatedAt: data.updatedAt ? (data.updatedAt as Timestamp).toDate() : undefined
-                } as BusinessPostcard;
+                } as unknown as BusinessPostcard;
             });
         } catch (error) {
             handleFirestoreError(error, OperationType.GET, path);

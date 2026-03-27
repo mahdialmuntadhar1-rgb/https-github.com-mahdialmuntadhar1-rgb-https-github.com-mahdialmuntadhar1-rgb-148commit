@@ -45,7 +45,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
                     {activeTab === 'signin' ? t('auth.signIn') : t('auth.signUp')}
                 </h2>
                 <p className="text-white/60 text-sm mb-8">
-                    {activeTab === 'signin' ? 'Welcome back to Iraq Compass' : 'Join the Social Business Ecosystem'}
+                    {activeTab === 'signin' ? t('auth.welcomeBack') : t('auth.joinEcosystem')}
                 </p>
 
                 <div className="space-y-6">
@@ -56,16 +56,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
                                 onClick={() => setRole('user')}
                                 className={`flex-1 py-3 rounded-xl border transition-all flex flex-col items-center gap-1 ${role === 'user' ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-white/60'}`}
                             >
-                                <span className="font-semibold text-sm">{t('auth.roleUser') || "Visitor"}</span>
-                                <span className="text-[10px] opacity-60">Explore & Connect</span>
+                                <span className="font-semibold text-sm">{t('auth.roleUser')}</span>
+                                <span className="text-[10px] opacity-60">{t('auth.exploreConnect')}</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setRole('owner')}
                                 className={`flex-1 py-3 rounded-xl border transition-all flex flex-col items-center gap-1 ${role === 'owner' ? 'bg-secondary/20 border-secondary text-secondary' : 'bg-white/5 border-white/10 text-white/60'}`}
                             >
-                                <span className="font-semibold text-sm">{t('auth.roleOwner') || "Business Owner"}</span>
-                                <span className="text-[10px] opacity-60">Grow Your Business</span>
+                                <span className="font-semibold text-sm">{t('auth.roleOwner')}</span>
+                                <span className="text-[10px] opacity-60">{t('auth.growBusiness')}</span>
                             </button>
                         </div>
                     )}
@@ -80,7 +80,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
                         ) : (
                             <>
                                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                                <span>Continue with Google</span>
+                                <span>{t('auth.continueGoogle')}</span>
                             </>
                         )}
                     </button>
@@ -90,13 +90,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
                             <div className="w-full border-t border-white/10"></div>
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-dark-bg px-2 text-white/40">Or continue with email</span>
+                            <span className="bg-dark-bg px-2 text-white/40">{t('auth.orEmail')}</span>
                         </div>
                     </div>
 
                     <div className="space-y-4 opacity-50 pointer-events-none">
-                        <input type="email" placeholder="Email address" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none" />
-                        <input type="password" placeholder="Password" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none" />
+                        <input type="email" placeholder={t('auth.email')} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none" />
+                        <input type="password" placeholder={t('auth.password')} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none" />
                         <button className="w-full py-3 rounded-xl bg-white/10 text-white/40 font-semibold">
                             {activeTab === 'signin' ? t('auth.signIn') : t('auth.createAccount')}
                         </button>
@@ -107,7 +107,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
                             onClick={() => setActiveTab(activeTab === 'signin' ? 'signup' : 'signin')}
                             className="text-primary text-sm font-medium hover:underline"
                         >
-                            {activeTab === 'signin' ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                            {activeTab === 'signin' ? t('auth.noAccount') : t('auth.haveAccount')}
                         </button>
                     </div>
                 </div>

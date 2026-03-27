@@ -120,7 +120,15 @@ export const CityGuide: React.FC = () => {
               
               <div className="space-y-2">
                 <p className="text-white/60 text-xs mb-2">{t('cityGuide.trySaying')}:</p>
-                {['a historical tour of baghdad', 'أفضل المطاعم في أربيل', 'گەشتێکی یەک ڕۆژە لە سلێمانی'].map((command, i) => (<button key={i} onClick={() => setSearchQuery(command)} className="w-full text-start rtl:text-right px-3 py-2 rounded-lg backdrop-blur-xl bg-white/5 hover:bg-white/10 text-white/70 text-xs transition-all">"{command}"</button>))}
+                {(t('cityGuide.suggestions') as unknown as string[] || []).map((command, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => setSearchQuery(command)} 
+                    className="w-full text-start rtl:text-right px-3 py-2 rounded-lg backdrop-blur-xl bg-white/5 hover:bg-white/10 text-white/70 text-xs transition-all"
+                  >
+                    "{command}"
+                  </button>
+                ))}
               </div>
             </GlassCard>
             <GlassCard className="p-6">

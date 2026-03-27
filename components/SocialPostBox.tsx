@@ -62,7 +62,7 @@ export const SocialPostBox: React.FC<SocialPostBoxProps> = ({ businessId, busine
                 <textarea
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
-                    placeholder={t('social.postPlaceholder') || "What's new with your business?"}
+                    placeholder={t('social.postPlaceholder')}
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-primary transition-colors resize-none min-h-[100px]"
                 />
                 
@@ -82,7 +82,7 @@ export const SocialPostBox: React.FC<SocialPostBoxProps> = ({ businessId, busine
                 <div className="flex items-center justify-between">
                     <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 cursor-pointer transition-colors">
                         <Image className="w-5 h-5 text-primary" />
-                        <span className="text-sm">{t('social.addPhoto') || "Add Photo"}</span>
+                        <span className="text-sm">{t('social.addPhoto')}</span>
                         <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                     </label>
                     
@@ -96,7 +96,7 @@ export const SocialPostBox: React.FC<SocialPostBoxProps> = ({ businessId, busine
                         ) : (
                             <>
                                 <Send className="w-4 h-4" />
-                                <span>{t('social.post') || "Post"}</span>
+                                <span>{t('social.post')}</span>
                             </>
                         )}
                     </button>
