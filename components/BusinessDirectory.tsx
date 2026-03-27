@@ -115,7 +115,7 @@ interface BusinessDirectoryProps {
 type GetBusinessesResult = {
   data: Business[];
   hasMore: boolean;
-  lastId?: string;
+  nextOffset: number;
 };
 
 export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFilter, onBack }) => {
@@ -130,7 +130,7 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
   const [pageSize] = useState(20);
 
   const [businessesData, setBusinessesData] = useState<Business[]>([]);
-  const [lastId, setLastId] = useState<string | undefined>(undefined);
+  const [offset, setOffset] = useState(0);
 
   const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -144,7 +144,7 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
       city: initialFilter?.city || "",
       governorate: initialFilter?.governorate || "all",
     });
-    setLastId(undefined);
+    setOffset(0);
   }, [initialFilter]);
 
   const fetchBusinesses = async (isLoadMore = false) => {
@@ -156,12 +156,12 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
         category: filters.category,
         city: filters.city,
         governorate: filters.governorate,
-        lastId: isLoadMore ? lastId : undefined,
+        offset: isLoadMore ? offset : 0,
         limit: pageSize,
       })) as GetBusinessesResult;
 
       setBusinessesData((prev) => (isLoadMore ? [...prev, ...result.data] : result.data));
-      setLastId(result.lastId);
+      setOffset(result.nextOffset);
       setHasMore(result.hasMore);
     } catch (err) {
       console.error("Error fetching businesses:", err);
@@ -172,6 +172,7 @@ export const BusinessDirectory: React.FC<BusinessDirectoryProps> = ({ initialFil
   };
 
   useEffect(() => {
+    setOffset(0);
     fetchBusinesses(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, pageSize]);

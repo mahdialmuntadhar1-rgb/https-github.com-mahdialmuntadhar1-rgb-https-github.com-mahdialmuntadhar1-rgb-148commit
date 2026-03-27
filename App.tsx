@@ -75,6 +75,9 @@ const MainContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
   const [isSocialLoading, setIsSocialLoading] = useState(true);
+
+  const [dataStatus, setDataStatus] = useState(api.getBusinessDataSourceStatus());
+
   const [highContrast, setHighContrast] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('iraq-compass-high-contrast') === 'true';
@@ -121,6 +124,14 @@ const MainContent: React.FC = () => {
       setIsSocialLoading(false);
     });
     return () => unsubscribe();
+  }, []);
+
+
+  useEffect(() => {
+    const updateDataStatus = () => setDataStatus(api.getBusinessDataSourceStatus());
+    updateDataStatus();
+    const timer = window.setInterval(updateDataStatus, 1500);
+    return () => window.clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -250,6 +261,11 @@ const MainContent: React.FC = () => {
         onClose={() => setSelectedCategory(null)}
         onSubcategorySelect={handleSubcategorySelect}
       />
+      <div className="fixed bottom-2 right-3 z-50 pointer-events-none">
+        <div className="text-[10px] tracking-wide uppercase px-2 py-1 rounded-md bg-black/35 border border-white/20 text-white/60">
+          {dataStatus.envOk ? 'ENV OK' : 'ENV MISSING'} · DATA: {dataStatus.dataSource === 'live' ? 'LIVE' : 'FALLBACK'}
+        </div>
+      </div>
     </div>
   );
 };
