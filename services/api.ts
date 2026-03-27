@@ -1,8 +1,6 @@
 // services/api.ts
 import type { Business, Post, User, BusinessPostcard } from "../types";
-import { hasSupabaseEnv, querySupabase } from "./supabase";
-import { supabase } from "../src/lib/supabase";
-import { hasSupabaseEnv, querySupabase } from "../src/lib/supabase";
+import { supabase, hasSupabaseEnv, querySupabase } from "../src/lib/supabase";
 
 /**
  * Data source status for the small debug chip in the UI.

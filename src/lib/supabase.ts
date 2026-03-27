@@ -22,6 +22,7 @@ type SupabaseError = {
   message: string;
   [key: string]: unknown;
 };
+
 export interface SupabaseQueryOptions {
   select: string;
   orderBy?: string;
@@ -34,9 +35,12 @@ export interface SupabaseQueryOptions {
 const SESSION_KEY = 'supabase_auth_session';
 const listeners = new Set<(event: string, session: AuthSession | null) => void>();
 
-const missingEnvError = (): SupabaseError => ({
-  message: 'Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable auth.',
-});
+const getConfig = () => {
+  if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) return null;
+  return { supabaseUrl, supabaseAnonKey };
+};
+
+const createMissingEnvError = (): SupabaseError => ({ message: SUPABASE_ENV_ERROR });
 
 const safeJsonParse = <T>(value: string | null): T | null => {
   if (!value) return null;
@@ -46,13 +50,6 @@ const safeJsonParse = <T>(value: string | null): T | null => {
     return null;
   }
 };
-
-const getConfig = () => {
-  if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) return null;
-  return { supabaseUrl, supabaseAnonKey };
-};
-
-const createMissingEnvError = () => ({ message: SUPABASE_ENV_ERROR });
 
 const getStoredSession = () => {
   if (typeof window === 'undefined') return null;
@@ -94,6 +91,9 @@ const buildAuthHeaders = (withAuth = true) => {
   };
 };
 
+const buildFilter = (key: string, op: string, value: string | number | boolean) =>
+  `${encodeURIComponent(key)}=${encodeURIComponent(`${op}.${value}`)}`;
+
 const buildRestQuery = (options: SupabaseQueryOptions): string => {
   const params = new URLSearchParams();
   params.set('select', options.select);
@@ -122,7 +122,6 @@ const buildRestQuery = (options: SupabaseQueryOptions): string => {
 };
 
 const parseOAuthHashSession = async () => {
-  if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) return;
   const config = getConfig();
   if (!config || typeof window === 'undefined') return;
 
@@ -163,19 +162,6 @@ const ensureOAuthSessionParsed = () => {
   void parseOAuthHashSession();
 };
 
-const authHeaders = (withAuth = true) => {
-  const session = getStoredSession();
-
-  return {
-    apikey: supabaseAnonKey || '',
-    Authorization: withAuth ? `Bearer ${session?.access_token || supabaseAnonKey || ''}` : `Bearer ${supabaseAnonKey || ''}`,
-    'Content-Type': 'application/json',
-  };
-};
-
-const buildFilter = (key: string, op: string, value: string | number | boolean) =>
-  `${encodeURIComponent(key)}=${encodeURIComponent(`${op}.${value}`)}`;
-
 export async function querySupabase<T = Record<string, unknown>>(
   table: string,
   options: SupabaseQueryOptions,
@@ -208,7 +194,6 @@ export async function querySupabase<T = Record<string, unknown>>(
   return { data, count };
 }
 
-// Source of truth Supabase adapter for auth + direct REST operations.
 export const supabase = {
   auth: {
     onAuthStateChange(callback: (event: string, session: AuthSession | null) => void) {
@@ -230,11 +215,6 @@ export const supabase = {
     },
 
     async signInWithPassword({ email, password }: { email: string; password: string }) {
-      if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
-        return { error: missingEnvError() };
-      }
-
-      const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
       const config = getConfig();
       if (!config) return { data: null, error: createMissingEnvError() };
 
@@ -259,11 +239,6 @@ export const supabase = {
     },
 
     async signUp({ email, password }: { email: string; password: string }) {
-      if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
-        return { error: missingEnvError() };
-      }
-
-      const response = await fetch(`${supabaseUrl}/auth/v1/signup`, {
       const config = getConfig();
       if (!config) return { data: null, error: createMissingEnvError() };
 
@@ -290,8 +265,6 @@ export const supabase = {
     },
 
     async signInWithOAuth({ provider, options }: { provider: 'google'; options?: { redirectTo?: string } }) {
-      if (!hasSupabaseEnv || !supabaseUrl) {
-        return { error: missingEnvError() };
       const config = getConfig();
       if (!config || typeof window === 'undefined') {
         return { error: createMissingEnvError() };
@@ -304,12 +277,6 @@ export const supabase = {
     },
 
     async signOut() {
-      if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
-        setStoredSession(null);
-        emitAuthChange('SIGNED_OUT', null);
-        return { error: null };
-      }
-
       const config = getConfig();
       const session = getStoredSession();
 
@@ -335,9 +302,6 @@ export const supabase = {
       single?: boolean;
     } = {},
   ) {
-    if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
-      return { data: null, error: missingEnvError() };
-    }
     const config = getConfig();
     if (!config) return { data: null, error: createMissingEnvError() };
 
@@ -374,11 +338,6 @@ export const supabase = {
   },
 
   async insert(table: string, value: Record<string, any>, single = false) {
-    if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
-      return { data: null, error: missingEnvError() };
-    }
-
-    const response = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
     const config = getConfig();
     if (!config) return { data: null, error: createMissingEnvError() };
 
@@ -400,9 +359,6 @@ export const supabase = {
   },
 
   async update(table: string, value: Record<string, any>, filters: Array<{ key: string; value: string | number }>) {
-    if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
-      return { error: missingEnvError() };
-    }
     const config = getConfig();
     if (!config) return { error: createMissingEnvError() };
 
@@ -421,15 +377,6 @@ export const supabase = {
   },
 
   async upsert(table: string, value: Record<string, any>, onConflict: string) {
-    if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
-      return { error: missingEnvError() };
-    }
-
-    const response = await fetch(`${supabaseUrl}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`, {
-      method: 'POST',
-      headers: {
-        ...authHeaders(true),
-        Prefer: 'resolution=merge-duplicates',
     const config = getConfig();
     if (!config) return { error: createMissingEnvError() };
 
