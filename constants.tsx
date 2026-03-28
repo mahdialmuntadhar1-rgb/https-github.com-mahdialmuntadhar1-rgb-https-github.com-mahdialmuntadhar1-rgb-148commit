@@ -1,5 +1,5 @@
 import React from 'react';
-import type { User, Story, Category, Business, Event, Deal, HeroSlide } from './types';
+import type { User, Story, Category, Business, Event, Deal, HeroSlide, Post } from './types';
 // FIX: Added 'Briefcase' to the import list from './components/icons' to make it available for use in this file.
 import {
   Utensils, Coffee, ShoppingBag, Bed, Film, Music, Palette, Dumbbell, Car,
@@ -874,6 +874,42 @@ export const deals: Deal[] = [
   { id: 1, discount: 25, businessLogo: 'https://picsum.photos/seed/bl1/64/64', title: 'Off on All Main Courses', titleKey: 'deals.items.zaytona.title', description: 'Enjoy a delicious discount at Zaytona Restaurant.', descriptionKey: 'deals.items.zaytona.description', expiresIn: '3 Days', expiresInKey: 'deals.items.zaytona.expires', claimed: 78, total: 200 },
   { id: 2, discount: 50, businessLogo: 'https://picsum.photos/seed/bl2/64/64', title: 'Off Your First Month', titleKey: 'deals.items.fitness.title', description: 'Join Fitness World Gym and get half price.', descriptionKey: 'deals.items.fitness.description', expiresIn: '1 Week', expiresInKey: 'deals.items.fitness.expires', claimed: 112, total: 150 },
   { id: 3, discount: 15, businessLogo: 'https://picsum.photos/seed/bl3/64/64', title: 'Off All Electronics', titleKey: 'deals.items.techcity.title', description: 'TechCity summer sale is here. Don\'t miss out!', descriptionKey: 'deals.items.techcity.description', expiresIn: '5 Days', expiresInKey: 'deals.items.techcity.expires', claimed: 204, total: 500 },
+];
+
+export const posts: Post[] = [
+  {
+    id: 'p1',
+    businessId: '1',
+    businessName: 'Rotana Erbil Hotel',
+    businessAvatar: 'https://picsum.photos/seed/b1/100/100',
+    caption: 'Experience luxury in the heart of Erbil. Book your stay now and enjoy our world-class spa.',
+    imageUrl: 'https://picsum.photos/seed/post1/800/600',
+    createdAt: new Date(),
+    likes: 124,
+    isVerified: true
+  },
+  {
+    id: 'p2',
+    businessId: '2',
+    businessName: 'Al-Rasheed Restaurant',
+    businessAvatar: 'https://picsum.photos/seed/b2/100/100',
+    caption: 'Our famous Masgouf is ready! Come and enjoy the authentic taste of Baghdad.',
+    imageUrl: 'https://picsum.photos/seed/post2/800/600',
+    createdAt: new Date(Date.now() - 3600000 * 2),
+    likes: 85,
+    isVerified: true
+  },
+  {
+    id: 'p3',
+    businessId: '3',
+    businessName: 'Kurdistan Mall',
+    businessAvatar: 'https://picsum.photos/seed/b3/100/100',
+    caption: 'New international brands have arrived at Kurdistan Mall. Shop the latest trends today!',
+    imageUrl: 'https://picsum.photos/seed/post3/800/600',
+    createdAt: new Date(Date.now() - 3600000 * 5),
+    likes: 210,
+    isVerified: true
+  }
 ];
 
 // Governorates

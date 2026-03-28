@@ -138,6 +138,7 @@ export interface BusinessPostcard {
   hero_image: string;
   image_gallery: string[];
   postcard_content: string;
+  top_reviews?: string[];
   google_maps_url: string;
   rating: number;
   review_count: number;

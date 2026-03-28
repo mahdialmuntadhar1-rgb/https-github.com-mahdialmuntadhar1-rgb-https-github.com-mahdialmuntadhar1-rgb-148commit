@@ -10,7 +10,8 @@
         "email": { "type": "string", "description": "The email address of the user." },
         "avatar": { "type": "string", "description": "The URL of the user's profile picture." },
         "role": { "type": "string", "enum": ["user", "owner", "admin"], "description": "The role of the user." },
-        "businessId": { "type": "string", "description": "The ID of the business owned by this user (if role is owner)." }
+        "businessId": { "type": "string", "description": "The ID of the business owned by this user (if role is owner)." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "The last update timestamp." }
       },
       "required": ["id", "name", "email", "role"]
     },

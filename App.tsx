@@ -92,23 +92,51 @@ const MainContent: React.FC = () => {
   });
 
   useEffect(() => {
+    let isMounted = true;
+    
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Retrieve the role from sessionStorage if it was set during the AuthModal flow
-        const pendingRole = sessionStorage.getItem('pending_role') as 'user' | 'owner' | null;
-        const user = await api.getOrCreateProfile(firebaseUser, pendingRole || 'user');
-        setCurrentUser(user);
-        setIsLoggedIn(!!user);
-        sessionStorage.removeItem('pending_role');
-      } else {
-        setCurrentUser(null);
-        setIsLoggedIn(false);
+      if (!isMounted) return;
+      
+      try {
+        if (firebaseUser) {
+          // Retrieve the role from sessionStorage if it was set during the AuthModal flow
+          const pendingRole = sessionStorage.getItem('pending_role') as 'user' | 'owner' | null;
+          const user = await api.getOrCreateProfile(firebaseUser, pendingRole || 'user');
+          if (isMounted) {
+            setCurrentUser(user);
+            setIsLoggedIn(!!user);
+          }
+          sessionStorage.removeItem('pending_role');
+        } else {
+          if (isMounted) {
+            setCurrentUser(null);
+            setIsLoggedIn(false);
+          }
+        }
+      } catch (err) {
+        console.error("Auth state change error:", err);
+      } finally {
+        if (isMounted) {
+          setIsAuthReady(true);
+        }
       }
-      setIsAuthReady(true);
     });
 
-    return () => unsubscribe();
-  }, []);
+    // Safety timeout: If Firebase doesn't respond within 4 seconds, 
+    // we proceed to the app anyway to avoid a stuck loading screen.
+    const timeoutId = setTimeout(() => {
+      if (isMounted && !isAuthReady) {
+        console.warn("Auth initialization timed out. Proceeding...");
+        setIsAuthReady(true);
+      }
+    }, 4000);
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+      clearTimeout(timeoutId);
+    };
+  }, [isAuthReady]);
 
   useEffect(() => {
     setIsSocialLoading(true);
@@ -116,7 +144,16 @@ const MainContent: React.FC = () => {
       setPosts(newPosts);
       setIsSocialLoading(false);
     });
-    return () => unsubscribe();
+
+    // Safety timeout for social loading
+    const timeoutId = setTimeout(() => {
+      setIsSocialLoading(false);
+    }, 5000);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   useEffect(() => {

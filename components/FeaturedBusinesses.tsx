@@ -13,18 +13,30 @@ export const FeaturedBusinesses: React.FC = () => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    const timeoutId = setTimeout(() => {
+      if (isMounted) setIsLoading(false);
+    }, 5000);
+
     const fetchFeatured = async () => {
       setIsLoading(true);
       try {
         const result = await api.getBusinesses({ featuredOnly: true, limit: 10 });
-        setBusinesses(result.data);
+        if (isMounted) setBusinesses(result.data);
       } catch (error) {
         console.error('Error fetching featured businesses:', error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+          clearTimeout(timeoutId);
+        }
       }
     };
     fetchFeatured();
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const scroll = (direction: 'left' | 'right') => {

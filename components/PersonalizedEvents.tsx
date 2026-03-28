@@ -12,6 +12,11 @@ export const PersonalizedEvents: React.FC = () => {
   const { t } = useTranslations();
 
   useEffect(() => {
+    let isMounted = true;
+    const timeoutId = setTimeout(() => {
+      if (isMounted) setIsLoading(false);
+    }, 5000);
+
     const fetchEvents = async () => {
       setIsLoading(true);
       try {
@@ -23,14 +28,21 @@ export const PersonalizedEvents: React.FC = () => {
           'friendsGoing': 'business'
         };
         const data = await api.getEvents({ category: categoryMap[activeTab] });
-        setEvents(data);
+        if (isMounted) setEvents(data);
       } catch (error) {
         console.error('Error fetching events:', error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+          clearTimeout(timeoutId);
+        }
       }
     };
     fetchEvents();
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, [activeTab]);
 
   return (
