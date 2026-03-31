@@ -10,18 +10,30 @@ export const DealsMarketplace: React.FC = () => {
   const { t } = useTranslations();
 
   useEffect(() => {
+    let isMounted = true;
+    const timeoutId = setTimeout(() => {
+      if (isMounted) setIsLoading(false);
+    }, 5000);
+
     const fetchDeals = async () => {
       setIsLoading(true);
       try {
         const data = await api.getDeals();
-        setDeals(data);
+        if (isMounted) setDeals(data);
       } catch (error) {
         console.error('Error fetching deals:', error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+          clearTimeout(timeoutId);
+        }
       }
     };
     fetchDeals();
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   if (isLoading) {

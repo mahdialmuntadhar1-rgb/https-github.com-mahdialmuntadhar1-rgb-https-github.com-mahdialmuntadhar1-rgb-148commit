@@ -26,8 +26,58 @@ export const DataArchitect: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [report, setReport] = useState<PipelineReport | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
+  const [existingPostcards, setExistingPostcards] = useState<BusinessPostcard[]>([]);
+  const [isFetching, setIsFetching] = useState(false);
+  const [isGeneratingTagline, setIsGeneratingTagline] = useState<string | null>(null);
 
   const addLog = (msg: string) => setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
+
+  const fetchExisting = async () => {
+    setIsFetching(true);
+    try {
+      const data = await api.getPostcards(selectedGovernorate);
+      setExistingPostcards(data);
+    } catch (err) {
+      console.error("Fetch failed", err);
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  const generateTagline = async (postcard: BusinessPostcard) => {
+    if (!postcard.top_reviews || postcard.top_reviews.length === 0) {
+      alert("No reviews available for this business to generate a tagline.");
+      return;
+    }
+
+    setIsGeneratingTagline(postcard.id || postcard.title);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
+      const topReviews = postcard.top_reviews.join('\n');
+      
+      const aiResponse = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `You are a creative copywriter for a local business discovery app in Iraq.
+        Based on these Google Maps reviews for "${postcard.title}":
+        ${topReviews}
+        Write a single punchy tagline (max 15 words) that captures the vibe of this business.
+        Tone: warm, local, and confident. No emojis. No generic phrases like "best in town."`
+      });
+
+      const newTagline = aiResponse.text.trim().replace(/^"|"$/g, '');
+      
+      const updatedPostcard = { ...postcard, postcard_content: newTagline };
+      const result = await api.upsertPostcard(updatedPostcard);
+      
+      if (result.success) {
+        setExistingPostcards(prev => prev.map(p => (p.id === postcard.id ? updatedPostcard : p)));
+      }
+    } catch (err) {
+      console.error("Tagline generation failed", err);
+    } finally {
+      setIsGeneratingTagline(null);
+    }
+  };
 
   const processPipeline = async () => {
     if (!rawJson.trim()) return;
@@ -45,7 +95,7 @@ export const DataArchitect: React.FC = () => {
       const flagged: { name: string; city: string; reason: string }[] = [];
       const postcards: BusinessPostcard[] = [];
 
-      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY as string });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
 
       for (const place of places) {
         const name = place.title || place.name;
@@ -92,7 +142,7 @@ export const DataArchitect: React.FC = () => {
                 Based on these Google Maps reviews for "${name}":
                 ${topReviews}
                 Write a single punchy tagline (max 15 words) that captures the vibe of this business.
-                Tone: warm, local, confident. No emojis. No generic phrases like "best in town."`
+                Tone: warm, local, and confident. No emojis. No generic phrases like "best in town."`
             });
             tagline = aiResponse.text.trim().replace(/^"|"$/g, '');
         } catch (err) {
@@ -111,6 +161,7 @@ export const DataArchitect: React.FC = () => {
           hero_image: images[0],
           image_gallery: images.slice(0, 5),
           postcard_content: tagline,
+          top_reviews: reviews.slice(0, 3).map((r: any) => r.text),
           google_maps_url: place.url || place.googleMapsUrl,
           rating: place.totalScore || place.rating || 0,
           review_count: place.reviewsCount || place.reviewCount || 0,
@@ -258,6 +309,70 @@ export const DataArchitect: React.FC = () => {
           </div>
         </GlassCard>
       )}
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-secondary" />
+            AI Tagline Refiner
+          </h3>
+          <button 
+            onClick={fetchExisting}
+            disabled={isFetching}
+            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm hover:bg-white/10 transition-all flex items-center gap-2"
+          >
+            {isFetching ? <div className="w-3 h-3 border-2 border-white/50 border-t-white rounded-full animate-spin" /> : <Navigation className="w-3 h-3" />}
+            Fetch {selectedGovernorate} Businesses
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {existingPostcards.map((p) => (
+            <GlassCard key={p.id} className="p-4 flex flex-col gap-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h4 className="text-white font-bold">{p.title}</h4>
+                  <p className="text-white/40 text-xs">{p.neighborhood}, {p.city}</p>
+                </div>
+                <div className="px-2 py-1 rounded-lg bg-primary/20 text-primary text-[10px] font-bold uppercase">
+                  {p.category_tag}
+                </div>
+              </div>
+
+              <div className="flex-grow">
+                <p className="text-white/80 text-sm italic leading-relaxed">
+                  "{p.postcard_content || 'No tagline generated yet.'}"
+                </p>
+              </div>
+
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-400 text-xs">★</span>
+                  <span className="text-white text-xs font-bold">{p.rating}</span>
+                  <span className="text-white/40 text-[10px]">({p.review_count})</span>
+                </div>
+                <button 
+                  onClick={() => generateTagline(p)}
+                  disabled={isGeneratingTagline === (p.id || p.title)}
+                  className="px-3 py-1.5 rounded-lg bg-secondary/20 text-secondary text-xs font-semibold hover:bg-secondary/30 transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isGeneratingTagline === (p.id || p.title) ? (
+                    <div className="w-3 h-3 border-2 border-secondary/50 border-t-secondary rounded-full animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3 h-3" />
+                  )}
+                  Generate Tagline
+                </button>
+              </div>
+            </GlassCard>
+          ))}
+          {existingPostcards.length === 0 && !isFetching && (
+            <div className="col-span-full py-12 text-center bg-white/5 border border-dashed border-white/10 rounded-3xl">
+              <p className="text-white/20 italic">No businesses fetched yet. Select a governorate and click fetch.</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

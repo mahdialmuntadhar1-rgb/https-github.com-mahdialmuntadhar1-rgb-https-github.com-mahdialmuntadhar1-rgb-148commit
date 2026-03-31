@@ -3,11 +3,7 @@ import { heroSlides } from '../constants';
 import { useTranslations } from '../hooks/useTranslations';
 import { motion, AnimatePresence } from 'motion/react';
 
-interface HeroSectionProps {
-    onJoinOwner: () => void;
-}
-
-export const HeroSection: React.FC<HeroSectionProps> = ({ onJoinOwner }) => {
+export const HeroSection: React.FC = () => {
     const [activeSlide, setActiveSlide] = React.useState(0);
     const { t } = useTranslations();
 
@@ -17,13 +13,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onJoinOwner }) => {
         }, 6000);
         return () => clearInterval(timer);
     }, []);
-
-    const jumpTo = (id: string) => {
-        const target = document.getElementById(id);
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    };
 
     return (
         <section className="relative h-[70vh] md:h-[85vh] w-full overflow-hidden flex flex-col justify-center items-center">
@@ -64,17 +53,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onJoinOwner }) => {
                             {t(heroSlides[activeSlide].subtitleKey)}
                         </p>
                         <div className="flex flex-wrap gap-4 justify-center">
-                            <button onClick={() => jumpTo('search-section')} className="px-6 py-3 rounded-full bg-primary text-white font-semibold hover:shadow-glow-primary transition-all duration-300 transform hover:scale-105">
-                                {t('actions.exploreMyCity')}
+                            <button className="px-8 py-4 rounded-full bg-primary text-white font-semibold hover:shadow-glow-primary transition-all duration-300 transform hover:scale-105">
+                                {t('actions.exploreNow') || 'Explore Now'}
                             </button>
-                            <button onClick={() => jumpTo('featured-section')} className="px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold hover:bg-white/20 transition-all duration-300">
-                                {t('actions.viewBusinesses')}
-                            </button>
-                            <button onClick={() => jumpTo('events-section')} className="px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold hover:bg-white/20 transition-all duration-300">
-                                {t('actions.seeTrending')}
-                            </button>
-                            <button onClick={onJoinOwner} className="px-6 py-3 rounded-full bg-secondary/90 text-white font-semibold hover:shadow-glow-primary transition-all duration-300">
-                                {t('actions.joinOwner')}
+                            <button className="px-8 py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold hover:bg-white/20 transition-all duration-300">
+                                {t('actions.learnMore') || 'Learn More'}
                             </button>
                         </div>
                     </motion.div>

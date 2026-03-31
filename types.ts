@@ -13,7 +13,6 @@ export interface Story {
   isLive?: boolean;
   media: string[];
   timeAgo: string;
-  governorate?: string;
 }
 
 export interface Subcategory {
@@ -124,7 +123,6 @@ export interface Post {
   createdAt: Date;
   likes: number;
   isVerified?: boolean;
-  governorate?: string;
 }
 
 export interface BusinessPostcard {
@@ -140,6 +138,7 @@ export interface BusinessPostcard {
   hero_image: string;
   image_gallery: string[];
   postcard_content: string;
+  top_reviews?: string[];
   google_maps_url: string;
   rating: number;
   review_count: number;

@@ -11,14 +11,13 @@ import { CommunityStories } from './CommunityStories';
 import { CityGuide } from './CityGuide';
 import { InclusiveFeatures } from './InclusiveFeatures';
 import { FooterSection } from './FooterSection';
-import type { Post, Category, User } from '../types';
-import { PostcardsSection } from './PostcardsSection';
+import { useTranslations } from '../hooks/useTranslations';
+import type { Post, Category } from '../types';
 
 interface HomePageProps {
   posts: Post[];
   isSocialLoading: boolean;
   isLoggedIn: boolean;
-  currentUser: User | null;
   onCategoryClick: (category: Category) => void;
   currentPage: number;
   setCurrentPage: (page: number) => void;
@@ -27,14 +26,12 @@ interface HomePageProps {
   onGovernorateChange: (gov: string) => void;
   highContrast: boolean;
   setHighContrast: (val: boolean) => void;
-  onJoinOwner: () => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
   posts,
   isSocialLoading,
   isLoggedIn,
-  currentUser,
   onCategoryClick,
   currentPage,
   setCurrentPage,
@@ -43,12 +40,13 @@ export const HomePage: React.FC<HomePageProps> = ({
   onGovernorateChange,
   highContrast,
   setHighContrast,
-  onJoinOwner,
 }) => {
+  const { t } = useTranslations();
+
   return (
     <div className="min-h-screen bg-dark-bg selection:bg-primary/30 selection:text-white">
-      <HeroSection onJoinOwner={onJoinOwner} />
-      <StoriesRing selectedGovernorate={selectedGovernorate} />
+      <HeroSection />
+      <StoriesRing />
       
       <CategoriesSection 
         onCategoryClick={onCategoryClick} 
@@ -56,14 +54,12 @@ export const HomePage: React.FC<HomePageProps> = ({
         setCurrentPage={setCurrentPage}
       />
 
-      <div className="container mx-auto px-4 py-24 relative" id="search-section">
+      <div className="container mx-auto px-4 py-24 relative">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
               <BusinessGridSection 
                 posts={posts} 
                 isLoading={isSocialLoading} 
-                isLoggedIn={isLoggedIn}
-                currentUser={currentUser}
-                onJoinOwner={onJoinOwner}
+                isLoggedIn={isLoggedIn} 
               />
               
               <SearchSection 
@@ -74,13 +70,12 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
       </div>
 
-      <FeaturedSection selectedGovernorate={selectedGovernorate} />
-      <PostcardsSection selectedGovernorate={selectedGovernorate} />
+      <FeaturedSection />
       
       <div className="space-y-32 py-24">
-        <PersonalizedEvents selectedGovernorate={selectedGovernorate} />
+        <PersonalizedEvents />
         <DealsMarketplace />
-        <CommunityStories selectedGovernorate={selectedGovernorate} />
+        <CommunityStories />
         <CityGuide />
       </div>
 
@@ -90,3 +85,4 @@ export const HomePage: React.FC<HomePageProps> = ({
     </div>
   );
 };
+

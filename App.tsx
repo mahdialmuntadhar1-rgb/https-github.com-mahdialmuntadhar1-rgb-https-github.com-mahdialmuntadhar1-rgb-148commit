@@ -6,14 +6,13 @@ import { Dashboard } from './components/Dashboard';
 import { SubcategoryModal } from './components/SubcategoryModal';
 import { HomePage } from './components/HomePage';
 import { api } from './services/api';
-import { supabase } from './services/supabase';
+import { auth } from './firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import type { User, Category, Subcategory, Post } from './types';
 import { TranslationProvider, useTranslations } from './hooks/useTranslations';
 import { motion, AnimatePresence } from 'motion/react';
-import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 
 import { translations } from './constants';
-import { mockData, type GovernorateId } from './services/mockData';
 
 const getTranslation = (key: string) => {
   const lang = (localStorage.getItem('iraq-compass-lang') as 'en' | 'ar' | 'ku') || 'en';
@@ -82,9 +81,9 @@ const MainContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [listingFilter, setListingFilter] = useState<{ categoryId?: string; city?: string; governorate?: string } | null>(null);
   const [selectedGovernorate, setSelectedGovernorate] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
   const [isSocialLoading, setIsSocialLoading] = useState(true);
-  const [showOwnerMessage, setShowOwnerMessage] = useState(false);
   const [highContrast, setHighContrast] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('iraq-compass-high-contrast') === 'true';
@@ -93,46 +92,51 @@ const MainContent: React.FC = () => {
   });
 
   useEffect(() => {
-    let mounted = true;
-
-    const syncProfile = async (authUser: SupabaseAuthUser | null) => {
-      if (!mounted) return;
-
-      if (authUser) {
-        const pendingRole = sessionStorage.getItem('pending_role') as 'user' | 'owner' | null;
-        const user = await api.getOrCreateProfile(authUser, pendingRole || 'user');
-
-        if (!mounted) return;
-        setCurrentUser(user);
-        setIsLoggedIn(!!user);
-        sessionStorage.removeItem('pending_role');
-      } else {
-        setCurrentUser(null);
-        setIsLoggedIn(false);
+    let isMounted = true;
+    
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!isMounted) return;
+      
+      try {
+        if (firebaseUser) {
+          // Retrieve the role from sessionStorage if it was set during the AuthModal flow
+          const pendingRole = sessionStorage.getItem('pending_role') as 'user' | 'owner' | null;
+          const user = await api.getOrCreateProfile(firebaseUser, pendingRole || 'user');
+          if (isMounted) {
+            setCurrentUser(user);
+            setIsLoggedIn(!!user);
+          }
+          sessionStorage.removeItem('pending_role');
+        } else {
+          if (isMounted) {
+            setCurrentUser(null);
+            setIsLoggedIn(false);
+          }
+        }
+      } catch (err) {
+        console.error("Auth state change error:", err);
+      } finally {
+        if (isMounted) {
+          setIsAuthReady(true);
+        }
       }
-    };
-
-    const bootstrapAuth = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Failed to load auth session:', error.message);
-      }
-
-      await syncProfile(data.session?.user ?? null);
-      if (mounted) setIsAuthReady(true);
-    };
-
-    void bootstrapAuth();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      void syncProfile(session?.user ?? null);
     });
 
+    // Safety timeout: If Firebase doesn't respond within 4 seconds, 
+    // we proceed to the app anyway to avoid a stuck loading screen.
+    const timeoutId = setTimeout(() => {
+      if (isMounted && !isAuthReady) {
+        console.warn("Auth initialization timed out. Proceeding...");
+        setIsAuthReady(true);
+      }
+    }, 4000);
+
     return () => {
-      mounted = false;
-      authListener.subscription.unsubscribe();
+      isMounted = false;
+      unsubscribe();
+      clearTimeout(timeoutId);
     };
-  }, []);
+  }, [isAuthReady]);
 
   useEffect(() => {
     setIsSocialLoading(true);
@@ -140,7 +144,16 @@ const MainContent: React.FC = () => {
       setPosts(newPosts);
       setIsSocialLoading(false);
     });
-    return () => unsubscribe();
+
+    // Safety timeout for social loading
+    const timeoutId = setTimeout(() => {
+      setIsSocialLoading(false);
+    }, 5000);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   useEffect(() => {
@@ -154,14 +167,15 @@ const MainContent: React.FC = () => {
   }, [highContrast]);
 
   const handleLogin = (role: 'user' | 'owner') => {
-    // Auth is handled in AuthModal via Supabase OAuth.
-    // We store the role in sessionStorage to be picked up by the auth listener.
+    // Auth is handled in AuthModal via signInWithPopup, 
+    // which triggers onAuthStateChanged above.
+    // We store the role in sessionStorage to be picked up by the listener.
     sessionStorage.setItem('pending_role', role);
     setShowAuthModal(false);
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut(auth);
     setIsLoggedIn(false);
     setCurrentUser(null);
     setPage('home');
@@ -194,6 +208,7 @@ const MainContent: React.FC = () => {
   };
 
   const handleSearch = (query: string) => {
+    setSearchQuery(query);
     setListingFilter({ city: query, governorate: selectedGovernorate !== 'all' ? selectedGovernorate : undefined });
     setPage('listing');
   };
@@ -205,30 +220,6 @@ const MainContent: React.FC = () => {
     }
   };
 
-
-  const visiblePosts = React.useMemo(() => {
-    const normalizedGov = (selectedGovernorate || 'all') as GovernorateId;
-    const normalizedPosts = normalizedGov === 'all'
-      ? posts
-      : posts.filter((post) => (post.governorate || '').toLowerCase() === normalizedGov);
-
-    if (normalizedPosts.length > 0) return normalizedPosts;
-    return mockData.posts(normalizedGov);
-  }, [posts, selectedGovernorate]);
-
-  const handleJoinOwner = () => {
-    if (!isLoggedIn) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    if (currentUser?.role === 'owner' || currentUser?.role === 'admin') {
-      setPage('dashboard');
-      return;
-    }
-
-    setShowOwnerMessage(true);
-  };
   if (!isAuthReady) {
     return (
       <div className="min-h-screen bg-dark-bg flex items-center justify-center">
@@ -258,10 +249,9 @@ const MainContent: React.FC = () => {
               transition={{ duration: 0.3 }}
             >
               <HomePage 
-                posts={visiblePosts}
+                posts={posts}
                 isSocialLoading={isSocialLoading}
                 isLoggedIn={isLoggedIn}
-                currentUser={currentUser}
                 onCategoryClick={handleCategoryClick}
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
@@ -270,7 +260,6 @@ const MainContent: React.FC = () => {
                 onGovernorateChange={handleGovernorateChange}
                 highContrast={highContrast}
                 setHighContrast={setHighContrast}
-                onJoinOwner={handleJoinOwner}
               />
             </motion.div>
           )}
@@ -296,23 +285,12 @@ const MainContent: React.FC = () => {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
             >
-              <Dashboard user={currentUser!} onLogout={handleLogout} onRequestOwnerAccess={handleJoinOwner} />
+              <Dashboard user={currentUser!} onLogout={handleLogout} />
             </motion.div>
           )}
         </AnimatePresence>
       </main>
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} onLogin={handleLogin} />}
-      {showOwnerMessage && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowOwnerMessage(false)}>
-          <div className="w-full max-w-md rounded-2xl bg-dark-bg border border-white/20 p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-white mb-2">{t('auth.ownerOnlyTitle')}</h3>
-            <p className="text-white/70 mb-6">{t('auth.ownerOnlyDesc')}</p>
-            <button onClick={() => { setShowOwnerMessage(false); setShowAuthModal(true); }} className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-semibold">
-              {t('actions.joinOwner')}
-            </button>
-          </div>
-        </div>
-      )}
       <SubcategoryModal 
         category={selectedCategory} 
         onClose={() => setSelectedCategory(null)}

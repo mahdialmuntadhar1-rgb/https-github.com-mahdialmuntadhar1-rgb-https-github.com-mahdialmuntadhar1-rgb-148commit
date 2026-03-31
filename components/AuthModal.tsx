@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X } from './icons';
+import { X, User } from './icons';
 import { useTranslations } from '../hooks/useTranslations';
-import { supabase } from '../services/supabase';
+import { auth } from '../firebase';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 interface AuthModalProps {
     onClose: () => void;
@@ -17,23 +18,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
     const handleGoogleSignIn = async () => {
         setIsLoading(true);
         try {
+            // Store the role in sessionStorage BEFORE triggering the popup
+            // to ensure onAuthStateChanged picks it up correctly.
             sessionStorage.setItem('pending_role', role);
-
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: `${window.location.origin}${window.location.pathname}`,
-                    skipBrowserRedirect: false,
-                },
-            });
-
-            if (error) {
-                throw error;
-            }
-
+            
+            const provider = new GoogleAuthProvider();
+            await signInWithPopup(auth, provider);
             onLogin(role);
         } catch (error) {
             console.error('Google Sign-In Error:', error);
+            // Clear the pending role if sign-in fails
             sessionStorage.removeItem('pending_role');
         } finally {
             setIsLoading(false);
@@ -85,7 +79,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
                             <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
                         ) : (
                             <>
-                                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
                                 <span>{t('auth.continueGoogle')}</span>
                             </>
                         )}
@@ -100,13 +94,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
                         </div>
                     </div>
 
-                    <div className="space-y-4 opacity-50">
+                    <div className="space-y-4 opacity-50 pointer-events-none">
                         <input type="email" placeholder={t('auth.email')} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none" />
                         <input type="password" placeholder={t('auth.password')} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none" />
-                        <button type="button" disabled className="w-full py-3 rounded-xl bg-white/10 text-white/40 font-semibold cursor-not-allowed">
-                            {t('auth.emailComingSoon')}
+                        <button className="w-full py-3 rounded-xl bg-white/10 text-white/40 font-semibold">
+                            {activeTab === 'signin' ? t('auth.signIn') : t('auth.createAccount')}
                         </button>
-                        <p className="text-xs text-white/40 text-center">{t('auth.emailComingSoonDesc')}</p>
                     </div>
 
                     <div className="text-center">
